@@ -1,0 +1,11 @@
+node_modules
+.s
+dist
+doc
+locales
+.ided
+.vscode
+
+package-lock.json
+example
+.DS_S*
