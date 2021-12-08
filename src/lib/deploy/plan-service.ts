@@ -41,6 +41,7 @@ export default class PlanService extends PlanDeployBase {
     servicePlan.needInteract = _.isEqual(state, servicePlan.remote) ? false : changed;
     logger.debug(`servicePlan needInteract: ${changed}`);
     servicePlan.diff = text?.substring(2, text.length - 1);
+    servicePlan.plan = this.diff(cloneRemote, servicePlan.local)?.text?.substring(2, text.length - 1);
     logger.debug(`servicePlan diff:\n${text}`);
     return servicePlan;
   }
@@ -51,12 +52,15 @@ export default class PlanService extends PlanDeployBase {
     const { remote } = servicePlan;
     remote.name = this.serviceName;
     // 日志配置 
+    const logLocalConfigAuto = this.isAutoConfig(this.service.logConfig);
     if (_.isEmpty(remote.logConfig?.project)) {
       delete remote.logConfig;
-    } else if (this.isAutoConfig(this.service.logConfig)) {
+    } else if (logLocalConfigAuto) {
       servicePlan.local.logConfig = remote.logConfig;
     }
+
     // 专有网络配置
+    const vpcLocalConfigAuto = this.isAutoConfig(this.service.vpcConfig) || (!_.isEmpty(this.service.vpcConfig) && this.isAutoConfig(this.service.nasConfig));
     if (_.isEmpty(remote.vpcConfig?.vpcId)) {
       delete remote.vpcConfig;
     } else {
@@ -66,11 +70,13 @@ export default class PlanService extends PlanDeployBase {
         remote.vpcConfig.vswitchIds = remote.vpcConfig.vSwitchIds;
         delete remote.vpcConfig.vSwitchIds;
       // 本地 vpcConfig 是 auto，或者本地配置不存在并且 nasConfig 是 auto 的：复用配置
-      } else if (this.isAutoConfig(this.service.vpcConfig) || (!_.isEmpty(this.service.vpcConfig) && this.isAutoConfig(this.service.nasConfig))) {
+      } else if (vpcLocalConfigAuto) {
         servicePlan.local.vpcConfig = remote.vpcConfig;
       }
     }
+
     // 存储配置
+    const nasLocalConfigAuto = this.isAutoConfig(this.service.nasConfig);
     if (_.isEmpty(remote.nasConfig?.mountPoints)) {
       delete remote.nasConfig;
     } else {
@@ -84,7 +90,7 @@ export default class PlanService extends PlanDeployBase {
           return { serverAddr, nasDir, fcDir: item.mountDir };
         }),
       };
-      if (this.isAutoConfig(this.service.nasConfig)) {
+      if (nasLocalConfigAuto) {
         servicePlan.local.nasConfig = remote.nasConfig;
       }
     }
@@ -95,7 +101,15 @@ export default class PlanService extends PlanDeployBase {
       delete remote.tracingConfig;
     }
 
-    // TODO: role 处理
+    // 存在需要角色的 auto 配置
+    const roleLocalAuto = this.isAutoConfig(this.service.role);
+    const hasFunctionAsyncConfig = _.has(this.functionConfig || {}, 'asyncConfiguration')
+    if (hasFunctionAsyncConfig || logLocalConfigAuto || vpcLocalConfigAuto || nasLocalConfigAuto || roleLocalAuto) {
+      // 如果角色为 auto 或者没有配置角色，则复用配置
+      if ((roleLocalAuto || _.isEmpty(this.service.role)) && !_.isEmpty(remote.role)) {
+        servicePlan.local.role = remote.role;
+      }
+    }
 
     // 删除本地配置不支持的字段
     const cloneRemote = this.clearInvalidField(remote, ['vendorConfig', 'serviceName', 'serviceId', 'createdTime', 'lastModifiedTime']);

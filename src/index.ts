@@ -34,7 +34,7 @@ export default class ComponentDemo {
     logger.debug(`region: ${region}`);
     logger.debug(`access: ${access}`);
     logger.debug(`planType: ${planType}`);
-    // logger.debug(`subCommand: ${subCommand}`);
+    logger.debug(`subCommand: ${subCommand}`);
 
     const client = new Client(region, credentials, access, _.cloneDeep({
       project: inputs?.project,
@@ -47,7 +47,5 @@ export default class ComponentDemo {
       const planDeploy = new PlanDeploy();
       return await planDeploy.plan(props, fcClient, subCommand);
     }
-
-    return { hello: 'hanxie' };
   }
 }

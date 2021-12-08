@@ -50,7 +50,8 @@ export default class PlanFunction extends PlanDeployBase {
     functionPlan.diff = text?.substring(2, text.length - 1);
     logger.debug(`functionPlan needInteract: ${changed}`);
     logger.debug(`functionPlan diff:\n${text}`);
-    
+    functionPlan.plan = this.diff(cloneRemote, functionPlan.local)?.text?.substring(2, text.length - 1);
+
     // 回写代码配置
     functionPlan.local.codeUri = this.functionConfig.codeUri;
     functionPlan.local.ossBucket = this.functionConfig.ossBucket;
@@ -62,14 +63,19 @@ export default class PlanFunction extends PlanDeployBase {
     const { remote } = functionPlan;
     // 转化线上配置：监测到线上配置为空则删除相关配置
     remote.name = this.functionName;
-    if (_.isEmpty(remote.instanceLifecycleConfig?.preStop?.handler)) {
-      delete remote.instanceLifecycleConfig.preStop;
+    if (remote.instanceLifecycleConfig !== null) {
+      if (_.isEmpty(remote.instanceLifecycleConfig?.preStop?.handler)) {
+        delete remote.instanceLifecycleConfig.preStop;
+      }
+      if (_.isEmpty(remote.instanceLifecycleConfig?.preFreeze?.handler)) {
+        delete remote.instanceLifecycleConfig.preFreeze;
+      }
+      if (_.isEmpty(remote.instanceLifecycleConfig)) {
+        delete remote.instanceLifecycleConfig;
+      }
     }
-    if (_.isEmpty(remote.instanceLifecycleConfig?.preFreeze?.handler)) {
-      delete remote.instanceLifecycleConfig.preFreeze;
-    }
-    if (_.isEmpty(remote.instanceLifecycleConfig)) {
-      delete remote.instanceLifecycleConfig;
+    if (_.isEmpty(remote.environmentVariables)) {
+      delete remote.environmentVariables;
     }
     if (_.isEmpty(remote.initializer)) {
       delete remote.initializer;
@@ -80,6 +86,10 @@ export default class PlanFunction extends PlanDeployBase {
     }
     if (_.isNil(remote.customDNS)) {
       delete remote.customDNS;
+    }
+    if (remote.runtime === 'custom-container') {
+      delete remote.customContainerConfig?.accelerationInfo;
+      delete remote.customContainerConfig?.instanceID;
     }
 
     // 删除本地配置不支持的字段

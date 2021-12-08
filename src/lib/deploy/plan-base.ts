@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import Diff from '../diff';
 
 export default abstract class PlanDeployBase {
   region: string;
@@ -22,15 +23,15 @@ export default abstract class PlanDeployBase {
     } = localConfig;
 
     this.fcClient = fcClient;
-    this.accountId = fcClient.accountid;
+    this.accountId = fcClient?.accountid;
 
     this.region = region;
     this.service = service;
     this.functionConfig = functionConfig;
     this.triggers = triggers;
     this.customDomains = customDomains;
-    this.serviceName = this.service.name;
-    this.functionName = this.functionConfig.name;
+    this.serviceName = this.service?.name;
+    this.functionName = this.functionConfig?.name;
   }
 
   abstract getPlan();
@@ -65,5 +66,9 @@ export default abstract class PlanDeployBase {
     }
   
     return source;
+  }
+
+  diff(remote, local) {
+    return Diff.diff(remote, local);
   }
 }

@@ -50,7 +50,7 @@ export default class PlanTrigger extends PlanDeployBase {
         continue;
       }
 
-      const { domainPlan, cloneRemote } = this.transfromConfig(_.cloneDeep({ local: customDomain, remote, state }));
+      const { domainPlan, cloneRemote } = this.transfromConfig(_.cloneDeep({ local: customDomain, remote }));
       // 如果域名是 auto，临时修改为预期的域名
       if (nameIsAuto) {
         domainPlan.local.domainName = domainName;
@@ -64,6 +64,8 @@ export default class PlanTrigger extends PlanDeployBase {
       domainPlan.diff = text?.substring(2, text.length - 1);
       logger.debug(`servicePlan needInteract: ${changed}`);
       logger.debug(`servicePlan diff:\n${text}`);
+
+      domainPlan.plan = this.diff(cloneRemote, domainPlan.local)?.text?.substring(2, text.length - 1);
 
       // 还原 yaml 配置
       domainPlan.local.domainName = customDomain.domainName;
