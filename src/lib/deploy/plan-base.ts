@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import Diff from '../diff';
+import { isAutoConfig } from '../utils';
 
 export default abstract class PlanDeployBase {
   region: string;
@@ -36,9 +37,7 @@ export default abstract class PlanDeployBase {
 
   abstract getPlan();
 
-  isAutoConfig(config: any): boolean {
-    return config === 'auto' || config === 'Auto';
-  }
+  isAutoConfig = isAutoConfig
 
   clearInvalidField(data, invalidKeys) {
     const d = _.omit(data, invalidKeys);

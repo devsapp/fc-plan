@@ -3,6 +3,7 @@ import * as core from '@serverless-devs/core';
 import fs from 'fs';
 import diff from 'variable-diff';
 import logger from '../../common/logger';
+import { getDomainAutoName } from '../utils';
 import PlanDeployBase from "./plan-base";
 
 export default class PlanTrigger extends PlanDeployBase {
@@ -21,12 +22,12 @@ export default class PlanTrigger extends PlanDeployBase {
       }
       const nameIsAuto = this.isAutoConfig(domainName);
       // 获取缓存
-      const stateId = nameIsAuto ? `${this.functionName}.${this.serviceName}.${this.accountId}.${this.region}.fc.devsapp.net` : domainName;
+      const stateId = nameIsAuto ? getDomainAutoName(this.functionName, this.serviceName, this.accountId, this.region) : domainName;
       const state = await core.getState(stateId);
 
       if (nameIsAuto) {
         if (_.isEmpty(state)) {
-          domainName = `${this.functionName}.${this.serviceName}.${this.accountId}.${this.region}.fc.devsapp.net`.toLocaleLowerCase();
+          domainName = getDomainAutoName(this.functionName, this.serviceName, this.accountId, this.region);
         } else {
           domainName = state.domainName;
         }

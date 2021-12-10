@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import logger from '../../common/logger';
-import { getTableHeader } from '../utils';
+import { getTableHeader, getDomainAutoName, isAutoConfig } from '../utils';
 
 
 const COMMAND: string[] = [
@@ -27,6 +27,7 @@ export default class PlanRemove {
     this.fcClient = fcClient;
     logger.debug(`parsedData:: ${JSON.stringify(parsedData)}`);
 
+    const region = parsedData['region'] || props.region;
     const serviceName = parsedData['service-name'] || props.service?.name;
     const functionName = parsedData['function-name'] || props.function?.name;
     let triggerNames;
@@ -37,6 +38,17 @@ export default class PlanRemove {
     } else {
       triggerNames = props.triggers?.map(({ name }) => name);
     }
+    let customDomains;
+    if (_.isString(parsedData['domain-name'])) {
+      customDomains = [parsedData['domain-name']];
+    } else if (_.isArray(parsedData['domain-name'])) {
+      customDomains = parsedData['domain-name'];
+    } else {
+      customDomains = props.customDomains?.map(
+        ({ domainName }) => isAutoConfig(domainName) ? getDomainAutoName(functionName, serviceName, fcClient.accountid, region) : domainName
+      );
+    }
+
     const qualifier = parsedData.qualifier;
     const layerName = parsedData['layer-name'];
     const versionId = parsedData['version-id']; // || parsedData.id;
@@ -44,7 +56,16 @@ export default class PlanRemove {
 
     const plan = [];
     try {
+      // version 需要检测 alias / ondemand / provision
+      // alias 需要检测 ondemand / provision
+      // function 需要检测 latest 的 ondemand / provision
       switch(subCommand) {
+        case 'domain':
+          const domains = await this.domainPlan(customDomains);
+          if (!_.isEmpty(domains?.data)) {
+            plan.push(domains);
+          }
+          break;
         case 'layer':
           const layerPlan = await this.layerPlan(layerName, versionId);
           if (!_.isEmpty(layerPlan?.data)) {
@@ -105,7 +126,7 @@ export default class PlanRemove {
             plan.push(onDemandPlan);
           }
 
-          const provisionPlan = await this.onDemandPlan(serviceName);
+          const provisionPlan = await this.provisionPlan(serviceName);
           if (!_.isEmpty(provisionPlan?.data)) {
             plan.push(provisionPlan);
           }
@@ -140,7 +161,22 @@ export default class PlanRemove {
     }
 
     return plan;
-    // domain      Only remove domain resources; help command [s remove domain -h]
+  }
+
+  private async domainPlan(customDomains) {
+    if (_.isEmpty(customDomains)) {
+      return {};
+    }
+    
+    let domains = await this.fcClient.get_all_list_data('/custom-domains', 'customDomains');;
+    domains = domains.filter(item => customDomains.includes(item.domainName));
+
+    return {
+      title: `Domain resources:`,
+      resources: 'domain',
+      data: domains,
+      header: getTableHeader(['domainName', 'protocol', 'lastModifiedTime']),
+    }
   }
 
   private async servicePlan(serviceName: string) {
