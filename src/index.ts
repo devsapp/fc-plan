@@ -3,6 +3,7 @@ import _ from 'lodash';
 import logger from './common/logger';
 import Client from './lib/client';
 import PlanDeploy from './lib/deploy';
+import PlanRemove from './lib/remove';
 
 export default class ComponentDemo {
   /**
@@ -46,6 +47,11 @@ export default class ComponentDemo {
     if (_.isEqual(planType, 'deploy')) {
       const planDeploy = new PlanDeploy();
       return await planDeploy.plan(props, fcClient, subCommand);
+    } else if (_.isEqual(planType, 'remove')) {
+      const planRemove = new PlanRemove();
+      return await planRemove.plan(props, fcClient, subCommand || 'service', parsedArgs?.data || {});
+    } else {
+      throw new Error(`The incoming ${planType} command is not supported`);
     }
   }
 }
