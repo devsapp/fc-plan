@@ -28,8 +28,9 @@ export default class PlanTrigger extends PlanDeployBase {
       // 远端不存在：deploy 时不交互
       if (_.isEmpty(remote)) {
         plan.push({
-          remote: 'remoteNull',
+          remote,
           local: triggerConfig,
+          diff: 'remoteNull',
           needInteract: false,
         });
         continue;
@@ -46,7 +47,7 @@ export default class PlanTrigger extends PlanDeployBase {
       triggerPlan.diff = text?.substring(2, text.length - 1);
       logger.debug(`functionPlan needInteract: ${changed}`);
       logger.debug(`functionPlan diff:\n${text}`);
-      triggerPlan.plan = this.diff(cloneRemote, triggerPlan.local)?.text?.substring(2, text.length - 1);
+      triggerPlan.plan = this.diff(cloneRemote, triggerPlan.local)?.text;
       
       plan.push(triggerPlan);
     }

@@ -50,7 +50,7 @@ export default class PlanFunction extends PlanDeployBase {
     functionPlan.diff = text?.substring(2, text.length - 1);
     logger.debug(`functionPlan needInteract: ${changed}`);
     logger.debug(`functionPlan diff:\n${text}`);
-    functionPlan.plan = this.diff(cloneRemote, functionPlan.local)?.text?.substring(2, text.length - 1);
+    functionPlan.plan = this.diff(cloneRemote, functionPlan.local)?.text;
 
     // 回写代码配置
     functionPlan.local.codeUri = this.functionConfig.codeUri;

@@ -41,7 +41,7 @@ export default class PlanService extends PlanDeployBase {
     servicePlan.needInteract = _.isEqual(state, servicePlan.remote) ? false : changed;
     logger.debug(`servicePlan needInteract: ${changed}`);
     servicePlan.diff = text?.substring(2, text.length - 1);
-    servicePlan.plan = this.diff(cloneRemote, servicePlan.local)?.text?.substring(2, text.length - 1);
+    servicePlan.plan = this.diff(cloneRemote, servicePlan.local)?.text;
     logger.debug(`servicePlan diff:\n${text}`);
     return servicePlan;
   }
@@ -109,6 +109,10 @@ export default class PlanService extends PlanDeployBase {
       if ((roleLocalAuto || _.isEmpty(this.service.role)) && !_.isEmpty(remote.role)) {
         servicePlan.local.role = remote.role;
       }
+    }
+
+    if (_.isUndefined(this.service.internetAccess)) {
+      delete remote.internetAccess;
     }
 
     // 删除本地配置不支持的字段

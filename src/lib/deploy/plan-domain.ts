@@ -66,7 +66,7 @@ export default class PlanTrigger extends PlanDeployBase {
       logger.debug(`servicePlan needInteract: ${changed}`);
       logger.debug(`servicePlan diff:\n${text}`);
 
-      domainPlan.plan = this.diff(cloneRemote, domainPlan.local)?.text?.substring(2, text.length - 1);
+      domainPlan.plan = this.diff(cloneRemote, domainPlan.local)?.text;
 
       // 还原 yaml 配置
       domainPlan.local.domainName = customDomain.domainName;
