@@ -1,16 +1,16 @@
-// const typeColors = {
-//   modified: '\x1B[33m',
-//   added: '\x1B[32m',
-//   gray: '\x1B[22m',
-//   removed: '\x1B[31m'
-// };
+const typeColors = {
+  modified: '\x1B[33m',
+  added: '\x1B[32m',
+  gray: '\x1B[22m',
+  removed: '\x1B[31m'
+};
 
 const options = {
   indent: '  ',
   newLine: '\n',
-  wrap: function wrap(_type, text) {
-    return text;
-    // return `${typeColors[type]}${text}\x1B[0m`;
+  wrap: function wrap(type, text) {
+    // return text;
+    return `${typeColors[type]}${text}\x1B[0m`;
   },
   color: true
 };
