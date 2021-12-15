@@ -60,7 +60,7 @@ export default class PlanService extends PlanDeployBase {
     }
 
     // 专有网络配置
-    const vpcLocalConfigAuto = this.isAutoConfig(this.service.vpcConfig) || (!_.isEmpty(this.service.vpcConfig) && this.isAutoConfig(this.service.nasConfig));
+    const vpcLocalConfigAuto = this.isAutoConfig(this.service.vpcConfig) || (_.isEmpty(this.service.vpcConfig) && this.isAutoConfig(this.service.nasConfig));
     if (_.isEmpty(remote.vpcConfig?.vpcId)) {
       delete remote.vpcConfig;
     } else {
