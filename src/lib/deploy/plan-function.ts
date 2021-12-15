@@ -4,6 +4,17 @@ import diff from 'variable-diff';
 import logger from '../../common/logger';
 import PlanDeployBase from "./plan-base";
 
+export const FUNCTION_CONF_DEFAULT = {
+  description: 'This is default function description by fc-deploy component',
+  runtime: 'nodejs10',
+  handler: 'index.handler',
+  memorySize: 128,
+  timeout: 3,
+  instanceConcurrency: 1,
+  instanceType: 'e1',
+};
+const DEFAULT_CA_PORT = 9000;
+
 export default class PlanFunction extends PlanDeployBase {
   async getPlan() {
     if (_.isEmpty(this.service) || _.isEmpty(this.functionConfig)) {
@@ -34,7 +45,7 @@ export default class PlanFunction extends PlanDeployBase {
     
     const { functionPlan, cloneRemote } = this.transfromConfig(_.cloneDeep({
       remote,
-      local: this.functionConfig,
+      local: _.defaults(this.functionConfig, FUNCTION_CONF_DEFAULT),
     }));
 
     // 不对比代码配置
@@ -101,6 +112,17 @@ export default class PlanFunction extends PlanDeployBase {
     }
     if (!_.isEmpty(functionPlan.local.customDNS)) {
       functionPlan.local.customDNS = this.objectDeepTransfromString(functionPlan.local.customDNS);
+    }
+    if (['custom', 'custom-container'].includes(functionPlan.local.runtime) && _.isEmpty(functionPlan.local.caPort)) {
+      functionPlan.local.caPort = DEFAULT_CA_PORT;
+    }
+    if (!_.isEmpty(functionPlan.local.initializer)) {
+      if (_.isEmpty(functionPlan.local.initializationTimeout)) {
+        functionPlan.local.initializationTimeout = FUNCTION_CONF_DEFAULT.timeout;
+      }
+    } else {
+      delete functionPlan.local.initializer;
+      delete functionPlan.local.initializationTimeout;
     }
 
     return { cloneRemote, functionPlan };
