@@ -47,7 +47,7 @@ export default class PlanTrigger extends PlanDeployBase {
       triggerPlan.diff = text?.substring(2, text.length - 1);
       logger.debug(`functionPlan needInteract: ${changed}`);
       logger.debug(`functionPlan diff:\n${text}`);
-      triggerPlan.plan = this.diff(cloneRemote, triggerPlan.local)?.text;
+      triggerPlan.plan = this.diff(cloneRemote, triggerPlan.local);
       
       plan.push(triggerPlan);
     }

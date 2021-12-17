@@ -41,7 +41,7 @@ export default class PlanService extends PlanDeployBase {
     servicePlan.needInteract = _.isEqual(state, servicePlan.remote) ? false : changed;
     logger.debug(`servicePlan needInteract: ${changed}`);
     servicePlan.diff = text?.substring(2, text.length - 1);
-    servicePlan.plan = this.diff(cloneRemote, servicePlan.local)?.text;
+    servicePlan.plan = this.diff(cloneRemote, servicePlan.local);
     logger.debug(`servicePlan diff:\n${text}`);
     return servicePlan;
   }
