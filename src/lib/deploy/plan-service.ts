@@ -31,6 +31,9 @@ export default class PlanService extends PlanDeployBase {
       };
     }
     
+    if (state?.statefulConfig?.name) {
+      delete state?.statefulConfig?.name;
+    }
     const { servicePlan, cloneRemote } = this.transfromConfig(_.cloneDeep({
       remote,
       local: this.service,
@@ -38,7 +41,9 @@ export default class PlanService extends PlanDeployBase {
     // 转化后的线上配置和本地做 diff
     const { changed, text } = diff(cloneRemote, servicePlan.local);
     // 本地缓存和线上配置相等：deploy 时不交互
-    servicePlan.needInteract = _.isEqual(state, servicePlan.remote) ? false : changed;
+    servicePlan.needInteract = _.isEqual(state?.statefulConfig || {}, remote) ? false : changed;
+    logger.debug('diff service remote and state?.statefulConfig::');
+    logger.debug(diff(state?.statefulConfig || {}, remote)?.text);
     logger.debug(`servicePlan needInteract: ${changed}`);
     servicePlan.diff = text?.substring(2, text.length - 1);
     servicePlan.plan = this.diff(cloneRemote, servicePlan.local);

@@ -57,7 +57,10 @@ export default class PlanFunction extends PlanDeployBase {
     const { changed, text } = diff(cloneRemote, functionPlan.local);
 
     // 本地缓存和线上配置相等：deploy 时不交互
-    functionPlan.needInteract = _.isEqual(state, functionPlan.remote) ? false : changed;
+    if (state?.statefulConfig?.name) {
+      delete state?.statefulConfig?.name;
+    }
+    functionPlan.needInteract = _.isEqual(state?.statefulConfig || {}, remote) ? false : changed;
     functionPlan.diff = text?.substring(2, text.length - 1);
     logger.debug(`functionPlan needInteract: ${changed}`);
     logger.debug(`functionPlan diff:\n${text}`);
@@ -95,7 +98,18 @@ export default class PlanFunction extends PlanDeployBase {
     if (remote.instanceType !== 'g1') {
       delete remote.gpuMemorySize;
     }
-    if (_.isNil(remote.customDNS)) {
+    if (!_.isEmpty(remote.customDNS)) {
+      if (_.isEmpty(remote.customDNS.nameServers) && !_.has(functionPlan.local, 'customDNS.nameServers')) {
+        delete remote.customDNS.nameServers;
+      }
+      if (_.isEmpty(remote.customDNS.dnsOptions) && !_.has(functionPlan.local, 'customDNS.dnsOptions')) {
+        delete remote.customDNS.dnsOptions;
+      }
+      if (_.isEmpty(remote.customDNS.searches) && !_.has(functionPlan.local, 'customDNS.searches')) {
+        delete remote.customDNS.searches;
+      }
+    }
+    if (_.isEmpty(remote.customDNS)) {
       delete remote.customDNS;
     }
     if (remote.runtime === 'custom-container') {

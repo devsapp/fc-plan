@@ -43,7 +43,10 @@ export default class PlanTrigger extends PlanDeployBase {
       const { changed, text } = diff(cloneRemote, triggerPlan.local);
 
       // 本地缓存和线上配置相等：deploy 时不交互
-      triggerPlan.needInteract = _.isEqual(state, remote) ? false : changed;
+      if (state?.statefulConfig?.name) {
+        delete state?.statefulConfig?.name;
+      }
+      triggerPlan.needInteract = _.isEqual(state?.statefulConfig || {}, remote) ? false : changed;
       triggerPlan.diff = text?.substring(2, text.length - 1);
       logger.debug(`functionPlan needInteract: ${changed}`);
       logger.debug(`functionPlan diff:\n${text}`);
