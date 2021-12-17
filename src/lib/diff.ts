@@ -53,15 +53,14 @@ export default class Diff {
       const value = diffArrRes[index];
       if (_.isArray(value)) {
         const keyMark = this.getObjMarkKeys(value);
-        const keyStr = keyMark === 'UNCHANGED' ? `${indent}[` : options.wrap(keyMark, `${indent}${mark[keyMark]} [`);
+        const keyStr = keyMark === 'UNCHANGED' ? `${indent}` : options.wrap(keyMark, `${indent}${mark[keyMark]}`);
 
         showArr.push(keyStr);
         const str = this.showArr(value, depth + 1);
         showArr.push(str);
-        showArr.push(`${indent}]`);
         continue;
       } else if (this.valueIsItem(value)) {
-        const str = this.showItem(depth, index, value.__operation, value.__lValye, value.__rValue);
+        const str = this.showItem(depth, index, value.__operation, value.__lValye, value.__rValue, true);
         showArr.push(str);
       } else {
         showArr.push(this.showObj(value, depth + 1));
@@ -78,12 +77,13 @@ export default class Diff {
     for (const [key, value] of Object.entries(diffObjRes)) {
       if (_.isArray(value)) {
         const keyMark = this.getObjMarkKeys(value);
-        const keyStrStart = keyMark === 'UNCHANGED' ? `${indent}${key}: [` : options.wrap(keyMark, `${indent}${mark[keyMark]} ${key}:[`);
-        const keyStrEnd = keyMark === 'UNCHANGED' ? `${indent}]` : options.wrap(keyMark, `${indent}${mark[keyMark]} ]`);
-
-        showArr.push(keyStrStart);
-        showArr.push(this.showArr(value, depth + 1));
-        showArr.push(keyStrEnd);
+        if (keyMark === 'UNCHANGED') {
+          showArr.push(`${indent}${key}:`);
+          showArr.push(this.showArr(value, depth + 1));
+        } else {
+          const str = options.wrap(keyMark, `${indent}${mark[keyMark]} ${key}: ${JSON.stringify(this.tarnsArrData(value))}`);
+          showArr.push(str);
+        }
         continue;
       }
 
@@ -96,7 +96,7 @@ export default class Diff {
         showArr.push(keyStr);
         showStr = this.showObj(value, depth + 1);
       } else {
-        showStr += this.showItem(depth, key, __operation, __lValye, __rValue);
+        showStr += this.showItem(depth, key, __operation, __lValye, __rValue, false);
       }
       showArr.push(showStr);
     }
@@ -104,14 +104,53 @@ export default class Diff {
     return showArr.join(options.newLine);
   }
 
-  private static showItem(depth, key, operation, lValye, rValue) {
+  private static tarnsArrData(arr) {
+    return arr.map(item => {
+      if (_.isArray(item)) {
+        return this.tarnsArrData(item);
+      } else if (this.valueIsItem(item)) {
+        const { __operation, __lValye, __rValue }: any = item;
+        return __operation === 'ADDED' ? __rValue : __lValye;
+      }
+      return this.tarnsObjData(item);
+    })
+  }
+
+  private static tarnsObjData(obj) {
+    const o = {};
+    for (const [key, item] of Object.entries(obj)) {
+      if (_.isArray(item)) {
+        o[key] = this.tarnsArrData(item);
+      } else if (this.valueIsItem(item)) {
+        const { __operation, __lValye, __rValue }: any = item;
+        o[key] = __operation === 'ADDED' ? __rValue : __lValye;
+      } else {
+        o[key] = this.tarnsObjData(item);
+      }
+    }
+    return o;
+  }
+
+
+  /**
+   * 单个元素输出
+   * @param depth 深度，计算前面多少空格
+   * @param key 输出的 key 值
+   * @param operation 状态值: UPDATED / ADDED / UNCHANGED / REMOVED
+   * @param lValye 原数据
+   * @param rValue 目标数据
+   * @param isArr 是否是数组
+   * @returns 
+   */
+  private static showItem(depth, key, operation, lValye, rValue, isArr) {
     const indent = options.getIndent(depth * 2); // 前面多少个空格
+
     let showStr = '';
-    // UPDATED / ADDED / UNCHANGED / REMOVED
     if (operation === 'UPDATED') {
       showStr += `${indent}${key}: ${options.wrap(operation, `${lValye} => ${rValue}`)}`;
     } else if (operation === 'UNCHANGED') {
-      showStr += `${indent}${key}: ${options.wrap(operation, rValue)}`;
+      const k = isArr ? '-' : `${key}:`; // 如果是数组，则输出样式需要变化
+      showStr += `${indent}${k} ${options.wrap(operation, rValue)}`;
     } else {
       const preIndent = depth === 1 ? options.getIndent(2) : options.getIndent((depth - 1) * 2);
       const postIndent = depth === 1 ? '' : options.getIndent(2);
