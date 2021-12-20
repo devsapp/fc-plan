@@ -43,34 +43,35 @@ export default class Diff {
       }
       _.set(diffObjRes, diffPath, v);
     }
-    return this.showObj(diffObjRes, 1);
+    return this.showObj(diffObjRes, 1, true);
   }
 
-  static showArr(diffArrRes, depth) {
+  static showArr(diffArrRes, depth, parentUnchanged) {
     const indent = options.getIndent(depth * 2); // 前面多少个空格
     const showArr = [];
     for (const index in diffArrRes) {
       const value = diffArrRes[index];
       if (_.isArray(value)) {
         const keyMark = this.getObjMarkKeys(value);
-        const keyStr = keyMark === 'UNCHANGED' ? `${indent}` : options.wrap(keyMark, `${indent}${mark[keyMark]}`);
+        const unchanged = keyMark === 'UNCHANGED';
+        const keyStr = unchanged ? `${indent}` : options.wrap(keyMark, `${indent}${mark[keyMark]}`);
 
         showArr.push(keyStr);
-        const str = this.showArr(value, depth + 1);
+        const str = this.showArr(value, depth + 1, unchanged);
         showArr.push(str);
         continue;
       } else if (this.valueIsItem(value)) {
-        const str = this.showItem(depth, index, value.__operation, value.__lValye, value.__rValue, true);
+        const str = this.showItem(depth, '-', value.__operation, value.__lValye, value.__rValue, true, !parentUnchanged);
         showArr.push(str);
       } else {
-        showArr.push(this.showObj(value, depth + 1));
+        showArr.push(this.showObj(value, depth + 1, parentUnchanged));
       }
     }
 
     return showArr.join(options.newLine);
   }
 
-  static showObj(diffObjRes, depth) {
+  static showObj(diffObjRes, depth, parentUnchanged) {
     const indent = options.getIndent(depth * 2); // 前面多少个空格
 
     const showArr = [];
@@ -79,7 +80,7 @@ export default class Diff {
         const keyMark = this.getObjMarkKeys(value);
         if (keyMark === 'UNCHANGED') {
           showArr.push(`${indent}${key}:`);
-          showArr.push(this.showArr(value, depth + 1));
+          showArr.push(this.showArr(value, depth + 1, true));
         } else {
           const str = options.wrap(keyMark, `${indent}${mark[keyMark]} ${key}: ${JSON.stringify(this.tarnsArrData(value))}`);
           showArr.push(str);
@@ -92,11 +93,12 @@ export default class Diff {
       // 不是我们处理的格式，认为是用户自定义的 obj
       if (!this.valueIsItem(value)) {
         const keyMark = this.getObjMarkKeys(value);
-        const keyStr = keyMark === 'UNCHANGED' ? `${indent}${key}:` : options.wrap(keyMark, `${indent}${mark[keyMark]} ${key}:`);
+        const unchanged = keyMark === 'UNCHANGED';
+        const keyStr = unchanged ? `${indent}${key}:` : options.wrap(keyMark, `${indent}${mark[keyMark]} ${key}:`);
         showArr.push(keyStr);
-        showStr = this.showObj(value, depth + 1);
+        showStr = this.showObj(value, depth + 1, unchanged);
       } else {
-        showStr += this.showItem(depth, key, __operation, __lValye, __rValue, false);
+        showStr += this.showItem(depth, key, __operation, __lValye, __rValue, false, parentUnchanged);
       }
       showArr.push(showStr);
     }
@@ -140,21 +142,26 @@ export default class Diff {
    * @param lValye 原数据
    * @param rValue 目标数据
    * @param isArr 是否是数组
+   * @param parentChanged 父节点是否输出 +/-
    * @returns 
    */
-  private static showItem(depth, key, operation, lValye, rValue, isArr) {
+  private static showItem(depth, key, operation, lValye, rValue, isArr, parentShowMark) {
     const indent = options.getIndent(depth * 2); // 前面多少个空格
+    const k = isArr ? '-' : `${key}:`; // 如果是数组，则输出样式需要变化
 
     let showStr = '';
     if (operation === 'UPDATED') {
-      showStr += `${indent}${key}: ${options.wrap(operation, `${lValye} => ${rValue}`)}`;
+      showStr += `${indent}${k} ${options.wrap(operation, `${lValye} => ${rValue}`)}`;
     } else if (operation === 'UNCHANGED') {
-      const k = isArr ? '-' : `${key}:`; // 如果是数组，则输出样式需要变化
       showStr += `${indent}${k} ${options.wrap(operation, rValue)}`;
     } else {
-      const preIndent = depth === 1 ? options.getIndent(2) : options.getIndent((depth - 1) * 2);
-      const postIndent = depth === 1 ? '' : options.getIndent(2);
-      showStr += options.wrap(operation, `${preIndent}${mark[operation]}${postIndent} ${key}: ${lValye || rValue}`);
+      let showPreStr = `${indent}${mark[operation]}`;
+      if (parentShowMark) {
+        const preIndent = depth === 1 ? options.getIndent(2) : options.getIndent((depth - 1) * 2);
+        const postIndent = depth === 1 ? '' : options.getIndent(2);
+        showPreStr = `${preIndent}${mark[operation]}${postIndent}`;
+      }
+      showStr += options.wrap(operation, `${showPreStr} ${k} ${lValye || rValue}`);
     }
     return showStr;
   }

@@ -90,6 +90,10 @@ export default class PlanTrigger extends PlanDeployBase {
     } else if (triggerType === 'oss' && local.config?.bucketName) {
       local.sourceArn = `acs:oss:${this.region}:${this.accountId}:${local.config.bucketName}`;
       delete local.config.bucketName;
+    } else if (triggerType === 'http') {
+      if (_.isNil(_.get(local, 'config.methods'))) {
+        _.set(local, 'config.methods', ['GET']);
+      }
     }
 
     triggerPlan.local = local;
