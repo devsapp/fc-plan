@@ -54,6 +54,13 @@ export default class PlanRemove {
     const versionId = parsedData['version-id']; // || parsedData.id;
     const aliasName = parsedData['alias-name'];
 
+    let showTitle = `Need to delete the resource in the ${region} area`;
+    if (['domain', 'layer'].includes(subCommand)) {
+      showTitle += ':';
+    } else {
+      showTitle += `, the operation service is ${serviceName}:`;
+    }
+    logger.log(showTitle);
     const plan = [];
     try {
       // version 需要检测 alias / ondemand / provision
@@ -172,7 +179,6 @@ export default class PlanRemove {
     domains = domains.filter(item => customDomains.includes(item.domainName));
 
     return {
-      title: `Domain resources:`,
       resources: 'domain',
       data: domains,
       header: getTableHeader(['domainName', 'protocol', 'lastModifiedTime']),
@@ -183,7 +189,6 @@ export default class PlanRemove {
     const { data } = await this.fcClient.getService(serviceName);
 
     return {
-      title: `Service resources: ${serviceName}`,
       resources: 'service',
       data: [data],
       header: getTableHeader(['serviceName', 'description']),
@@ -197,7 +202,6 @@ export default class PlanRemove {
     }
 
     return {
-      title: `Resources under service(${serviceName}):`,
       resources: 'function',
       data: functions,
       header: getTableHeader(['functionName', 'runtime', 'description']),
@@ -217,7 +221,6 @@ export default class PlanRemove {
       triggers = triggers?.filter(({ triggerName }) => triggerNames.includes(triggerName));
     }
     return {
-      title: `Resources under function(${serviceName} / ${functionName}):`,
       resources: 'trigger',
       data: triggers,
       header: getTableHeader(['triggerName', 'triggerType', 'qualifier']),
@@ -234,7 +237,6 @@ export default class PlanRemove {
       versions = versions.filter(item => item.versionId === versionId.toString());
     }
     return {
-      title: `Resources under service(${serviceName}):`,
       resources: 'version',
       data: versions,
       header: getTableHeader(['versionId', 'description', 'createdTime', 'lastModifiedTime']),
@@ -268,7 +270,6 @@ export default class PlanRemove {
     };
 
     return {
-      title: `Resources under service(${serviceName}):`,
       resources: 'alias',
       data: alias,
       header: getTableHeader(['aliasName', 'versionId', 'description', 'createdTime', 'lastModifiedTime', showWeight]),
@@ -314,7 +315,6 @@ export default class PlanRemove {
       },
     ];
     return {
-      title: `Resources under service(${serviceName}):`,
       resources: 'provision',
       data: provisionConfigs?.filter((item) => item.target || item.current)
       .map((item) => ({
@@ -377,7 +377,6 @@ export default class PlanRemove {
     }
 
     return {
-      title: `Layer resources: ${layerName}:`,
       resources: 'lasyer',
       data: lasyers,
       header: getTableHeader(['layerName', 'description', 'version', 'compatibleRuntime', 'arn']),
