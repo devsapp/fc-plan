@@ -13,6 +13,8 @@ export const FUNCTION_CONF_DEFAULT = {
   instanceConcurrency: 1,
   instanceType: 'e1',
 };
+
+const isCustomContainer = (runtime) => runtime === 'custom-container';
 const DEFAULT_CA_PORT = 9000;
 
 export default class PlanFunction extends PlanDeployBase {
@@ -60,7 +62,9 @@ export default class PlanFunction extends PlanDeployBase {
     if (state?.statefulConfig?.name) {
       delete state?.statefulConfig?.name;
     }
-    functionPlan.needInteract = _.isEqual(state?.statefulConfig || {}, remote) ? false : changed;
+    const cState = this.rmCustomContainerConfigAccelerationInfo(state?.statefulConfig || {});
+    const cRemote = this.rmCustomContainerConfigAccelerationInfo(state?.statefulConfig);
+    functionPlan.needInteract = _.isEqual(cState, cRemote) ? false : changed;
     functionPlan.diff = text?.substring(2, text.length - 1);
     logger.debug(`functionPlan needInteract: ${changed}`);
     logger.debug(`functionPlan diff:\n${text}`);
@@ -117,12 +121,16 @@ export default class PlanFunction extends PlanDeployBase {
       delete remote.customContainerConfig?.instanceID;
     }
 
+    this.rmCustomContainerConfigAccelerationInfo(remote);
+
     // 删除本地配置不支持的字段
     const cloneRemote = this.clearInvalidField(remote, ['lastModifiedTime', 'createdTime', 'codeChecksum', 'codeSize', 'functionName', 'functionId']);
 
     // deploy 对本地做的操作
     if (!_.isEmpty(functionPlan.local.environmentVariables)) {
       functionPlan.local.environmentVariables = _.mapValues(functionPlan.local.environmentVariables, (value) => value?.toString());
+    } else {
+      delete functionPlan.local.environmentVariables;
     }
     if (!_.isEmpty(functionPlan.local.customDNS)) {
       functionPlan.local.customDNS = this.objectDeepTransfromString(functionPlan.local.customDNS);
@@ -138,8 +146,24 @@ export default class PlanFunction extends PlanDeployBase {
       delete functionPlan.local.initializer;
       delete functionPlan.local.initializationTimeout;
     }
+    this.rmCustomContainerConfigAccelerationInfo(functionPlan.local);
 
     return { cloneRemote, functionPlan };
+  }
+
+  private async rmCustomContainerConfigAccelerationInfo (obj) {
+    if (isCustomContainer(obj?.runtime)) {
+      if (_.has(obj.customContainerConfig, 'accelerationInfo')) {
+        delete obj.customContainerConfig.accelerationInfo;
+      }
+      const customContainerConfig = {};
+      _.forIn(obj.customContainerConfig, (value, key) => {
+        if (!_.isEmpty(value)) {
+          customContainerConfig[key] = value;
+        }
+      });
+      obj.customContainerConfig = customContainerConfig;
+    }
   }
 
   private async getFunctionConfig () {
