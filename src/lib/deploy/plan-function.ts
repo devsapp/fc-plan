@@ -151,7 +151,7 @@ export default class PlanFunction extends PlanDeployBase {
     return { cloneRemote, functionPlan };
   }
 
-  private async rmCustomContainerConfigAccelerationInfo (obj) {
+  private rmCustomContainerConfigAccelerationInfo (obj) {
     if (isCustomContainer(obj?.runtime)) {
       if (_.has(obj.customContainerConfig, 'accelerationInfo')) {
         delete obj.customContainerConfig.accelerationInfo;
