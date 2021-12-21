@@ -17,8 +17,10 @@ const options = {
   getIndent: (num) => new Array(num).fill(' ').join(''),
   newLine: '\n',
   wrap: (type, text) => {
-    // return text;
-    return `${typeColors[type]}${text}\x1B[0m`;
+    if (!typeColors[type]) {
+      return text;
+    }
+    return `\x1B[1m${typeColors[type]}${text}\x1B[0m`;
   },
   color: true
 };
@@ -151,7 +153,7 @@ export default class Diff {
 
     let showStr = '';
     if (operation === 'UPDATED') {
-      showStr += `${indent}${k} ${options.wrap(operation, `${lValye} => ${rValue}`)}`;
+      showStr += `${indent}${options.wrap(operation, '~ ')}${k} ${options.wrap(operation, `${lValye} => ${rValue}`)}`;
     } else if (operation === 'UNCHANGED') {
       showStr += `${indent}${k} ${options.wrap(operation, rValue)}`;
     } else {
