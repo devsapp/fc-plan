@@ -225,8 +225,7 @@ export default class Diff {
   }
 
   private static valueIsItem(value) {
-    const { __operation }: any = value;
-    if (_.isEmpty(__operation) && !_.has(value, '__lValye') && !_.has(value, '__rValue')) {
+    if (!_.has(value, '__operation') && !_.has(value, '__lValye') && !_.has(value, '__rValue')) {
       return false;
     }
     return true;

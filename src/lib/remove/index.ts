@@ -280,7 +280,7 @@ export default class PlanRemove {
     if (_.isNil(serviceName)) {
       throw new Error('The serviceName was not found, you can specify it by --service-name')
     }
-    if (!_.isEmpty(qualifier) && _.isEmpty(functionName)) {
+    if (!_.isNil(qualifier) && _.isEmpty(functionName)) {
       throw new Error('When the functionName exists, the qualifier must exist, which can be specified by --function-name');
     }
 
@@ -328,7 +328,7 @@ export default class PlanRemove {
   }
 
   private async onDemandPlan(serviceName: string, functionName?: string, qualifier?: string) {
-    if (_.isNil(serviceName)) {
+    if (_.isEmpty(serviceName)) {
       throw new Error('The serviceName was not found, you can specify it by --service-name')
     }
     if ((!_.isEmpty(qualifier) && _.isEmpty(functionName)) || (!_.isEmpty(functionName) && _.isEmpty(qualifier))) {
