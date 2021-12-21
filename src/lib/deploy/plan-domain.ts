@@ -84,7 +84,7 @@ export default class PlanTrigger extends PlanDeployBase {
       delete cloneRemote.certConfig;
     }
     if (!_.isEmpty(cloneRemote.routeConfig?.routes)) {
-      cloneRemote.routeConfig = cloneRemote.routeConfig.routes.map(item => _.omitBy(item, (char) => _.isNull(char)));
+      cloneRemote.routeConfig = cloneRemote.routeConfig.routes.map(item => _.omitBy(item, (char, key) => _.isNull(char) || key === 'methods'));
     }
   
     // 读取配置文件
@@ -100,11 +100,16 @@ export default class PlanTrigger extends PlanDeployBase {
     }
     // 补全可省略的配置
     if (!_.isEmpty(domainPlan.local.routeConfigs)) {
-      domainPlan.local.routeConfig = domainPlan.local.routeConfigs.map(item => ({
-        serviceName: this.serviceName,
-        functionName: this.functionName,
-        ...item,
-      }));
+      domainPlan.local.routeConfig = domainPlan.local.routeConfigs.map(item => {
+        if (_.has(item, 'methods')) {
+          delete item.methods;
+        }
+        return ({
+          serviceName: this.serviceName,
+          functionName: this.functionName,
+          ...item,
+        })
+      });
       delete domainPlan.local.routeConfigs;
     }
 

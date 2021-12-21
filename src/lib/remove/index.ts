@@ -54,11 +54,11 @@ export default class PlanRemove {
     const versionId = parsedData['version-id']; // || parsedData.id;
     const aliasName = parsedData['alias-name'];
 
-    let showTitle = `Need to delete the resource in the ${region} area`;
+    let showTitle = `Need to delete the resource in the \x1B[1m${region}\x1B[0m area`;
     if (['domain', 'layer'].includes(subCommand)) {
-      showTitle += ':';
+      showTitle += ':\n';
     } else {
-      showTitle += `, the operation service is ${serviceName}:`;
+      showTitle += `, the operation service is \x1B[1m${serviceName}\x1B[0m:\n`;
     }
     logger.log(showTitle);
     const plan = [];
@@ -152,12 +152,18 @@ export default class PlanRemove {
           if (!_.isEmpty(functionPlan?.data)) {
             plan.push(functionPlan);
 
+            let triggers = [];
             for (const functionConfig of functionPlan.data) {
               const triggerPlan = await this.triggerPlan(serviceName, functionConfig.functionName);
               if (!_.isEmpty(triggerPlan?.data)) {
-                plan.push(triggerPlan);
+                triggers = _.concat(triggers, triggerPlan?.data);
               }
             }
+            plan.push({
+              resources: 'triggers',
+              data: triggers,
+              header: getTableHeader(['functionName', 'triggerName', 'triggerType', 'qualifier']),
+            });
           }
           break;
         default:
@@ -179,7 +185,7 @@ export default class PlanRemove {
     domains = domains.filter(item => customDomains.includes(item.domainName));
 
     return {
-      resources: 'domain',
+      resources: 'customDomains',
       data: domains,
       header: getTableHeader(['domainName', 'protocol', 'lastModifiedTime']),
     }
@@ -222,9 +228,9 @@ export default class PlanRemove {
     }
     return {
       resources: 'trigger',
-      data: triggers,
-      header: getTableHeader(['triggerName', 'triggerType', 'qualifier']),
-    }
+      data: triggers.map(item => ({ ...item, functionName })),
+      header: getTableHeader(['functionName', 'triggerName', 'triggerType', 'qualifier']),
+    };
   }
 
   private async versionPlan(serviceName: string, versionId?: string) {

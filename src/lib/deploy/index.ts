@@ -28,7 +28,7 @@ export default class PlanDeploy {
 
     if (_.isEmpty(subCommand) || subCommand === 'domain') {
       const getDomainPlan = new PlanDomain(localConfig, fcClient);
-      plan.domains = await getDomainPlan.getPlan();
+      plan.customDomains = await getDomainPlan.getPlan();
     }
 
     return plan;
