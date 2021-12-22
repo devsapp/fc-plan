@@ -19,10 +19,6 @@ export default class ComponentDemo {
       project = {},
     } = inputs;
     const { access } = project;
-    const { region } = props;
-    if (_.isEmpty(region)) {
-      throw new Error('The region field was not found');
-    }
 
     const parsedArgs = core.commandParse(inputs, {
       string: ['sub-command', 'plan-type'],
@@ -31,6 +27,11 @@ export default class ComponentDemo {
       'plan-type': planType = 'deploy',
       'sub-command': subCommand,
     } = parsedArgs?.data || {};
+    const region = parsedArgs?.data?.region || props?.region;
+
+    if (_.isEmpty(region)) {
+      throw new Error('The region field was not found');
+    }
 
     logger.debug(`region: ${region}`);
     logger.debug(`access: ${access}`);
