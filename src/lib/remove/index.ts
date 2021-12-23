@@ -379,7 +379,7 @@ export default class PlanRemove {
     if (versionId) {
       lasyers = [(await this.fcClient.getLayerVersion(layerName, versionId))?.data];
     } else {
-      lasyers = this.fcClient.get_all_list_data(`/layers/${layerName}/versions`, 'layers');
+      lasyers = await this.fcClient.get_all_list_data(`/layers/${layerName}/versions`, 'layers');
     }
 
     return {
