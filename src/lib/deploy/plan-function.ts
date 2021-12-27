@@ -62,12 +62,21 @@ export default class PlanFunction extends PlanDeployBase {
     if (state?.statefulConfig?.name) {
       delete state?.statefulConfig?.name;
     }
+
+    const localChecksum = state?.statefulConfig?.codeChecksum;
+    const removeChecksum = remote?.codeChecksum;
+    const codeUpdate = removeChecksum !== localChecksum;
+    if (removeChecksum && codeUpdate) {
+      functionPlan.codeChecksumDiff = `Code package has changed in other ways（checksum）: \x1B[33m${localChecksum}\x1B[0m -> \x1B[33m${removeChecksum}\x1B[0m`;
+    }
+
     const cState = this.rmCustomContainerConfigAccelerationInfo(state?.statefulConfig || {});
-    const cRemote = this.rmCustomContainerConfigAccelerationInfo(state?.statefulConfig);
-    functionPlan.needInteract = _.isEqual(cState, cRemote) ? false : changed;
+    const cRemote = this.rmCustomContainerConfigAccelerationInfo(remote || {});
+    functionPlan.needInteract = codeUpdate || (_.isEqual(cState, cRemote) ? false : changed);
     functionPlan.diff = text?.substring(2, text.length - 1);
-    logger.debug(`functionPlan needInteract: ${changed}`);
+    logger.debug(`functionPlan needInteract: ${changed}, ${functionPlan.needInteract}`);
     logger.debug(`functionPlan diff:\n${text}`);
+    logger.debug(`functionPlan codeChecksumDiff:\n${functionPlan.codeChecksumDiff}`);
     functionPlan.plan = this.diff(cloneRemote, functionPlan.local);
 
     // 回写代码配置
@@ -164,6 +173,13 @@ export default class PlanFunction extends PlanDeployBase {
       });
       obj.customContainerConfig = customContainerConfig;
     }
+    if (_.has(obj, 'codeChecksum')) {
+      delete obj.codeChecksum;
+    }
+    if (_.has(obj, 'codeSize')) {
+      delete obj.codeSize;
+    }
+    return obj;
   }
 
   private async getFunctionConfig () {
