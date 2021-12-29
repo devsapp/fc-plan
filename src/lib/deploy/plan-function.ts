@@ -67,7 +67,7 @@ export default class PlanFunction extends PlanDeployBase {
     const removeChecksum = remote?.codeChecksum;
     const codeUpdate = removeChecksum !== localChecksum;
     if (removeChecksum && codeUpdate) {
-      functionPlan.codeChecksumDiff = `Code package has changed in other ways（checksum）: \x1B[33m${localChecksum}\x1B[0m -> \x1B[33m${removeChecksum}\x1B[0m`;
+      functionPlan.codeChecksumDiff = `Code package has changed in other ways(checksum):\nLast local deployment -> Online status:\x1B[33m${localChecksum}\x1B[0m -> \x1B[33m${removeChecksum}\x1B[0m`;
     }
 
     const cState = this.rmCustomContainerConfigAccelerationInfo(state?.statefulConfig || {});
