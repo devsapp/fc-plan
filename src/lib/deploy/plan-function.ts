@@ -18,6 +18,7 @@ const isCustomContainer = (runtime) => runtime === 'custom-container';
 const DEFAULT_CA_PORT = 9000;
 
 export default class PlanFunction extends PlanDeployBase {
+
   async getPlan() {
     if (_.isEmpty(this.service) || _.isEmpty(this.functionConfig)) {
       logger.debug(`service/function config is empty, skip getFunctionPlan`);
@@ -45,7 +46,7 @@ export default class PlanFunction extends PlanDeployBase {
       };
     }
     
-    const { functionPlan, cloneRemote } = this.transfromConfig(_.cloneDeep({
+    const { functionPlan, cloneRemote } = await this.transfromConfig(_.cloneDeep({
       remote,
       local: _.defaults(this.functionConfig, FUNCTION_CONF_DEFAULT),
     }));
@@ -67,11 +68,12 @@ export default class PlanFunction extends PlanDeployBase {
     const removeChecksum = remote?.codeChecksum;
     const codeUpdate = removeChecksum !== localChecksum;
     if (removeChecksum && codeUpdate) {
-      functionPlan.codeChecksumDiff = `Code package has changed in other ways(checksum):\nLast local deployment -> Online status:\x1B[33m${localChecksum}\x1B[0m -> \x1B[33m${removeChecksum}\x1B[0m`;
+      functionPlan.codeChecksumDiff = `Code package has changed in other ways(checksum):\nLast local deployment -> Online status:\x1B[33m${localChecksum || null}\x1B[0m -> \x1B[33m${removeChecksum}\x1B[0m`;
     }
 
     const cState = this.rmCustomContainerConfigAccelerationInfo(state?.statefulConfig || {});
     const cRemote = this.rmCustomContainerConfigAccelerationInfo(remote || {});
+    cRemote.asyncConfiguration = cloneRemote.asyncConfiguration;
     functionPlan.needInteract = codeUpdate || (_.isEqual(cState, cRemote) ? false : changed);
     functionPlan.diff = text?.substring(2, text.length - 1);
     logger.debug(`functionPlan needInteract: ${changed}, ${functionPlan.needInteract}`);
@@ -86,7 +88,7 @@ export default class PlanFunction extends PlanDeployBase {
     return functionPlan;
   }
 
-  private transfromConfig(functionPlan) {
+  private async transfromConfig(functionPlan) {
     const { remote } = functionPlan;
     // 转化线上配置：监测到线上配置为空则删除相关配置
     remote.name = this.functionName;
@@ -130,6 +132,11 @@ export default class PlanFunction extends PlanDeployBase {
       delete remote.customContainerConfig?.instanceID;
     }
 
+    const remoteAsyncConfiguration = await this.getFunctionAsyncConfig();
+    if (!_.isNil(remoteAsyncConfiguration)) {
+      remote.asyncConfiguration = remoteAsyncConfiguration;
+    }
+
     this.rmCustomContainerConfigAccelerationInfo(remote);
 
     // 删除本地配置不支持的字段
@@ -157,7 +164,42 @@ export default class PlanFunction extends PlanDeployBase {
     }
     this.rmCustomContainerConfigAccelerationInfo(functionPlan.local);
 
+    const { asyncConfiguration } = functionPlan.local;
+    if (!_.isEmpty(asyncConfiguration)) {
+      const destination = asyncConfiguration.destination || {};
+      const { onSuccess, onFailure } = destination;
+      delete asyncConfiguration.destination;
+  
+      const destinationConfig: any = {};
+      if (onSuccess) {
+        destinationConfig.onSuccess = {
+          destination: onSuccess.replace(':::', `:${this.region}:${this.accountId}:`),
+        };
+      }
+      if (onFailure) {
+        destinationConfig.onFailure = {
+          destination: onFailure.replace(':::', `:${this.region}:${this.accountId}:`),
+        };
+      }
+      asyncConfiguration.destinationConfig = destinationConfig;
+      functionPlan.local.asyncConfiguration = asyncConfiguration;
+    }
+
     return { cloneRemote, functionPlan };
+  }
+
+  private async getFunctionAsyncConfig() {
+    try {
+      const { data } = await this.fcClient.getFunctionAsyncConfig(this.serviceName, this.functionName, 'LATEST');
+      return {
+        destinationConfig: data.destinationConfig,
+        maxAsyncEventAgeInSeconds: data.maxAsyncEventAgeInSeconds,
+        statefulInvocation: data.statefulInvocation,
+        maxAsyncRetryAttempts: data.maxAsyncRetryAttempts,
+      };
+    } catch (ex) {
+      logger.debug(`getFunctionAsyncConfig error code: ${ex.code}, message ${ex.message}`);
+    }
   }
 
   private rmCustomContainerConfigAccelerationInfo (obj) {
