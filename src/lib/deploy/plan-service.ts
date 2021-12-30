@@ -42,16 +42,33 @@ export default class PlanService extends PlanDeployBase {
       remote,
       local: _.defaults(this.service, SERVICE_CONF_DEFAULT),
     }));
+
+    const localRoleIsObject = _.isObject(servicePlan.local.role);
+    const localRole = servicePlan.local.role;
+    if (localRoleIsObject) {
+      if (!localRole?.name) {
+        throw new Error(`The custom service::role configuration does not have a name. Please specify a name field. Specific configuration can refer to:
+https://github.com/devsapp/fc/blob/main/docs/zh/yaml.md#role
+https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
+      }
+      servicePlan.local.role = `acs:ram::${this.accountId}:role/${localRole.name.toLocaleLowerCase()}`;
+    }
+
     // 转化后的线上配置和本地做 diff
     const { changed, text } = diff(cloneRemote, servicePlan.local);
     // 本地缓存和线上配置相等：deploy 时不交互
     servicePlan.needInteract = _.isEqual(state?.statefulConfig || {}, remote) ? false : changed;
     logger.debug('diff service remote and state?.statefulConfig::');
     logger.debug(diff(state?.statefulConfig || {}, remote)?.text);
-    logger.debug(`servicePlan needInteract: ${changed}`);
+    logger.debug(`servicePlan needInteract: ${servicePlan.needInteract}`);
     servicePlan.diff = text?.substring(2, text.length - 1);
+
     servicePlan.plan = this.diff(cloneRemote, servicePlan.local);
     logger.debug(`servicePlan diff:\n${text}`);
+
+    if (localRoleIsObject) {
+      servicePlan.local.role = localRole;
+    }
     return servicePlan;
   }
 
