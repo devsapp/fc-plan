@@ -4,6 +4,10 @@ import diff from 'variable-diff';
 import logger from '../../common/logger';
 import PlanDeployBase from "./plan-base";
 
+const SERVICE_CONF_DEFAULT = {
+  description: '',
+};
+
 export default class PlanService extends PlanDeployBase {
   async getPlan() {
     if (_.isEmpty(this.service)) {
@@ -36,7 +40,7 @@ export default class PlanService extends PlanDeployBase {
     }
     const { servicePlan, cloneRemote } = this.transfromConfig(_.cloneDeep({
       remote,
-      local: this.service,
+      local: _.defaults(this.service, SERVICE_CONF_DEFAULT),
     }));
     // 转化后的线上配置和本地做 diff
     const { changed, text } = diff(cloneRemote, servicePlan.local);

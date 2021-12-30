@@ -41,7 +41,8 @@ export default abstract class PlanDeployBase {
 
   clearInvalidField(data, invalidKeys) {
     const d = _.omit(data, invalidKeys);
-    return _.pickBy(d, (value: any) => !_.isNil(value) && value !== '');
+    const notIgnoreKeys = ['description'];
+    return _.pickBy(d, (value: any, key: string) => notIgnoreKeys.includes(key) || (!_.isNil(value) && value !== ''));
   }
 
   objectDeepTransfromString(source) {
