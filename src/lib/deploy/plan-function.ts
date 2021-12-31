@@ -133,6 +133,11 @@ export default class PlanFunction extends PlanDeployBase {
       delete remote.customContainerConfig?.accelerationInfo;
       delete remote.customContainerConfig?.instanceID;
     }
+    if (remote.runtime === 'custom') {
+      if (_.has(remote, 'customRuntimeConfig.args') && _.isEmpty(remote?.customRuntimeConfig?.args)) {
+        delete remote.customRuntimeConfig.args;
+      }
+    }
 
     const remoteAsyncConfiguration = await this.getFunctionAsyncConfig();
     if (!_.isNil(remoteAsyncConfiguration)) {
