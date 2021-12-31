@@ -4,6 +4,10 @@ import diff from 'variable-diff';
 import logger from '../../common/logger';
 import PlanDeployBase from "./plan-base";
 
+const SERVICE_CONF_DEFAULT = {
+  description: '',
+};
+
 export default class PlanService extends PlanDeployBase {
   async getPlan() {
     if (_.isEmpty(this.service)) {
@@ -36,18 +40,40 @@ export default class PlanService extends PlanDeployBase {
     }
     const { servicePlan, cloneRemote } = this.transfromConfig(_.cloneDeep({
       remote,
-      local: this.service,
+      local: _.defaults(this.service, SERVICE_CONF_DEFAULT),
     }));
+
+    const localRole: any = servicePlan.local.role;
+    const localRoleIsObject = _.isObject(localRole);
+    if (localRoleIsObject) {
+      // @ts-ignore
+      if (!localRole?.name) {
+        throw new Error(`The custom service::role configuration does not have a name. Please specify a name field. Specific configuration can refer to:
+https://github.com/devsapp/fc/blob/main/docs/zh/yaml.md#role
+https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
+      }
+      // @ts-ignore
+      servicePlan.local.role = `acs:ram::${this.accountId}:role/${localRole.name.toLocaleLowerCase()}`;
+    } else if (_.isString(localRole)) {
+      // role Arn 应该不区分大小写
+      servicePlan.local.role = localRole.toLocaleLowerCase();
+    }
+
     // 转化后的线上配置和本地做 diff
     const { changed, text } = diff(cloneRemote, servicePlan.local);
     // 本地缓存和线上配置相等：deploy 时不交互
     servicePlan.needInteract = _.isEqual(state?.statefulConfig || {}, remote) ? false : changed;
     logger.debug('diff service remote and state?.statefulConfig::');
     logger.debug(diff(state?.statefulConfig || {}, remote)?.text);
-    logger.debug(`servicePlan needInteract: ${changed}`);
+    logger.debug(`servicePlan needInteract: ${servicePlan.needInteract}`);
     servicePlan.diff = text?.substring(2, text.length - 1);
+
     servicePlan.plan = this.diff(cloneRemote, servicePlan.local);
     logger.debug(`servicePlan diff:\n${text}`);
+
+    if (localRoleIsObject) {
+      servicePlan.local.role = localRole;
+    }
     return servicePlan;
   }
 

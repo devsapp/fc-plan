@@ -73,10 +73,12 @@ export default class PlanFunction extends PlanDeployBase {
 
     const cState = this.rmCustomContainerConfigAccelerationInfo(state?.statefulConfig || {});
     const cRemote = this.rmCustomContainerConfigAccelerationInfo(remote || {});
-    cRemote.asyncConfiguration = cloneRemote.asyncConfiguration;
+    if (cloneRemote.asyncConfiguration) {
+      cRemote.asyncConfiguration = cloneRemote.asyncConfiguration;
+    }
     functionPlan.needInteract = codeUpdate || (_.isEqual(cState, cRemote) ? false : changed);
     functionPlan.diff = text?.substring(2, text.length - 1);
-    logger.debug(`functionPlan needInteract: ${changed}, ${functionPlan.needInteract}`);
+    logger.debug(`functionPlan needInteract: ${codeUpdate}(codeUpdate), ${changed}(changed), ${functionPlan.needInteract}(functionPlan.needInteract)`);
     logger.debug(`functionPlan diff:\n${text}`);
     logger.debug(`functionPlan codeChecksumDiff:\n${functionPlan.codeChecksumDiff}`);
     functionPlan.plan = this.diff(cloneRemote, functionPlan.local);
