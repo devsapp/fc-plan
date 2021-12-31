@@ -20,6 +20,9 @@ export default class ComponentDemo {
     } = inputs;
     const { access } = project;
 
+    // TODO:
+    // 1. config 和 code diff 理论上是需要分开的
+    // 2. plan 和 deploy，diff 理论上也是需要分开的
     const parsedArgs = core.commandParse(inputs, {
       string: ['sub-command', 'plan-type'],
     });
