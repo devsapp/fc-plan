@@ -43,15 +43,20 @@ export default class PlanService extends PlanDeployBase {
       local: _.defaults(this.service, SERVICE_CONF_DEFAULT),
     }));
 
-    const localRoleIsObject = _.isObject(servicePlan.local.role);
-    const localRole = servicePlan.local.role;
+    const localRole: any = servicePlan.local.role;
+    const localRoleIsObject = _.isObject(localRole);
     if (localRoleIsObject) {
+      // @ts-ignore
       if (!localRole?.name) {
         throw new Error(`The custom service::role configuration does not have a name. Please specify a name field. Specific configuration can refer to:
 https://github.com/devsapp/fc/blob/main/docs/zh/yaml.md#role
 https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
       }
+      // @ts-ignore
       servicePlan.local.role = `acs:ram::${this.accountId}:role/${localRole.name.toLocaleLowerCase()}`;
+    } else if (_.isString(localRole)) {
+      // role Arn 应该不区分大小写
+      servicePlan.local.role = localRole.toLocaleLowerCase();
     }
 
     // 转化后的线上配置和本地做 diff
