@@ -9,8 +9,8 @@ export function isAutoConfig(config: any): boolean {
 
 export const getTableHeader = (showKey) => {
   const header_option = {
-    headerColor: 'cyan',
-    color: 'cyan',
+    headerColor: 'white',
+    color: 'white',
     align: 'left',
     width: 'auto',
     formatter: (v) => v,
