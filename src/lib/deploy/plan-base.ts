@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { lodash as _ } from '@serverless-devs/core';
 import Diff from '../diff';
 import { isAutoConfig } from '../utils';
 

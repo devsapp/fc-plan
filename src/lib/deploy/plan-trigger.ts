@@ -1,9 +1,9 @@
-import _ from 'lodash';
 import * as core from '@serverless-devs/core';
 import diff from 'variable-diff';
 import logger from '../../common/logger';
 import PlanDeployBase from "./plan-base";
 
+const _ = core.lodash;
 export default class PlanTrigger extends PlanDeployBase {
   async getPlan() {
     if (_.isEmpty(this.service) || _.isEmpty(this.functionConfig) || _.isEmpty(this.triggers)) {

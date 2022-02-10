@@ -1,4 +1,4 @@
-import _ from "lodash";
+import { lodash as _ } from '@serverless-devs/core';
 
 export const getDomainAutoName = (functionName, serviceName, accountId, region) =>
   `${functionName}.${serviceName}.${accountId}.${region}.fc.devsapp.net`.toLocaleLowerCase();

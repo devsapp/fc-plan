@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { lodash as _ } from '@serverless-devs/core';
 import logger from '../../common/logger';
 import { getTableHeader, getDomainAutoName, isAutoConfig } from '../utils';
 
