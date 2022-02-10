@@ -155,6 +155,15 @@ export default class PlanFunction extends PlanDeployBase {
     } else {
       delete functionPlan.local.environmentVariables;
     }
+    if (functionPlan.local.runtime === 'custom' && !_.isEmpty(functionPlan.local.customRuntimeConfig)) {
+      const { command, args } = functionPlan.local.customRuntimeConfig;
+      if (_.isArray(command) && !_.isEmpty(command)) {
+        functionPlan.local.customRuntimeConfig.command = command.map((value) => value?.toString());
+      }
+      if (_.isArray(args) && !_.isEmpty(args)) {
+        functionPlan.local.customRuntimeConfig.args = args.map((value) => value?.toString());
+      }
+    }
     if (!_.isEmpty(functionPlan.local.customDNS)) {
       functionPlan.local.customDNS = this.objectDeepTransfromString(functionPlan.local.customDNS);
     }
