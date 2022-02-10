@@ -1,8 +1,8 @@
-import _ from 'lodash';
 import * as core from '@serverless-devs/core';
 import diff from 'variable-diff';
 import logger from '../../common/logger';
 import PlanDeployBase from "./plan-base";
+const _ = core.lodash;
 
 export const FUNCTION_CONF_DEFAULT = {
   description: 'This is default function description by fc-deploy component',
@@ -154,6 +154,15 @@ export default class PlanFunction extends PlanDeployBase {
       functionPlan.local.environmentVariables = _.mapValues(functionPlan.local.environmentVariables, (value) => value?.toString());
     } else {
       delete functionPlan.local.environmentVariables;
+    }
+    if (functionPlan.local.runtime === 'custom' && !_.isEmpty(functionPlan.local.customRuntimeConfig)) {
+      const { command, args } = functionPlan.local.customRuntimeConfig;
+      if (_.isArray(command)) {
+        functionPlan.local.customRuntimeConfig.command = command.map((value) => value?.toString());
+      }
+      if (_.isArray(args)) {
+        functionPlan.local.customRuntimeConfig.args = args.map((value) => value?.toString());
+      }
     }
     if (!_.isEmpty(functionPlan.local.customDNS)) {
       functionPlan.local.customDNS = this.objectDeepTransfromString(functionPlan.local.customDNS);

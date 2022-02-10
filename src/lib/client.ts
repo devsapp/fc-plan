@@ -1,6 +1,6 @@
 import * as core from '@serverless-devs/core';
-import _ from 'lodash';
 
+const _ = core.lodash;
 
 export default class Client {
   region: string;

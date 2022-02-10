@@ -1,5 +1,5 @@
 
-import _ from 'lodash';
+import { lodash as _ } from '@serverless-devs/core';
 import PlanService from './plan-service';
 import PlanFunction from './plan-function';
 import PlanTrigger from './plan-trigger';

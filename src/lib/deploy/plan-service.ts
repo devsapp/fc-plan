@@ -1,9 +1,9 @@
-import _ from 'lodash';
 import * as core from '@serverless-devs/core';
 import diff from 'variable-diff';
 import logger from '../../common/logger';
 import PlanDeployBase from "./plan-base";
 
+const _ = core.lodash;
 const SERVICE_CONF_DEFAULT = {
   description: '',
 };

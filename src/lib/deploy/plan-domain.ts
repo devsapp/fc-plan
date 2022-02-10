@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import * as core from '@serverless-devs/core';
 import fs from 'fs';
 import diff from 'variable-diff';
@@ -6,6 +5,7 @@ import logger from '../../common/logger';
 import { getDomainAutoName } from '../utils';
 import PlanDeployBase from "./plan-base";
 
+const _ = core.lodash;
 export default class PlanTrigger extends PlanDeployBase {
   async getPlan() {
     if (_.isEmpty(this.customDomains)) {

@@ -1,9 +1,10 @@
 import * as core from '@serverless-devs/core';
-import _ from 'lodash';
 import logger from './common/logger';
 import Client from './lib/client';
 import PlanDeploy from './lib/deploy';
 import PlanRemove from './lib/remove';
+
+const _ = core.lodash;
 
 export default class ComponentDemo {
   /**

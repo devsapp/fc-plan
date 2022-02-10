@@ -1,5 +1,5 @@
 import deepDiff from 'deep-diff-pizza';
-import _ from 'lodash';
+import { lodash as _ } from '@serverless-devs/core';
 import logger from '../common/logger';
 
 const typeColors = {
