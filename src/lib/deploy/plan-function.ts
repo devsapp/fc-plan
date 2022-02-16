@@ -147,7 +147,7 @@ export default class PlanFunction extends PlanDeployBase {
     this.rmCustomContainerConfigAccelerationInfo(remote);
 
     // 删除本地配置不支持的字段
-    const cloneRemote = this.clearInvalidField(remote, ['lastModifiedTime', 'createdTime', 'codeChecksum', 'codeSize', 'functionName', 'functionId']);
+    const cloneRemote = this.clearInvalidField(remote, ['instanceSoftConcurrency', 'lastModifiedTime', 'createdTime', 'codeChecksum', 'codeSize', 'functionName', 'functionId']);
 
     // deploy 对本地做的操作
     if (!_.isEmpty(functionPlan.local.environmentVariables)) {
