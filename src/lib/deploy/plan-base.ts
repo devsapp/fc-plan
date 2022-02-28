@@ -35,7 +35,7 @@ export default abstract class PlanDeployBase {
     this.functionName = this.functionConfig?.name;
   }
 
-  abstract getPlan();
+  abstract getPlan(credentials?);
 
   isAutoConfig = isAutoConfig
 

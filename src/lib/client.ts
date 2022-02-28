@@ -18,9 +18,12 @@ export default class Client {
 
   async getFcClient() {
     if (_.isEmpty(this.fcClient)) {
-      const fcCommon = await core.loadComponent('devsapp/fc-common');
-      this.serverlessProfile.props = { region: this.region };
-      const fcClient = await fcCommon.makeFcClient(this.serverlessProfile);
+      const fcCore = await core.loadComponent('devsapp/fc-core');
+      const fcClient = await fcCore.makeFcClient({
+        access: this.access,
+        credentials: this.credentials,
+        region: this.region,
+      });
 
       this.fcClient = fcClient;
     }

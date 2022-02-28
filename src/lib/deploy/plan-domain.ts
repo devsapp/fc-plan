@@ -1,5 +1,4 @@
 import * as core from '@serverless-devs/core';
-import fs from 'fs';
 import diff from 'variable-diff';
 import logger from '../../common/logger';
 import { getDomainAutoName } from '../utils';
@@ -7,7 +6,7 @@ import PlanDeployBase from "./plan-base";
 
 const _ = core.lodash;
 export default class PlanTrigger extends PlanDeployBase {
-  async getPlan() {
+  async getPlan(credentials) {
     if (_.isEmpty(this.customDomains)) {
       logger.debug(`customDomains config is empty, skip getTriggersPlan`);
       return {};
@@ -51,7 +50,7 @@ export default class PlanTrigger extends PlanDeployBase {
         continue;
       }
 
-      const { domainPlan, cloneRemote } = this.transfromConfig(_.cloneDeep({ local: customDomain, remote }));
+      const { domainPlan, cloneRemote } = await this.transfromConfig(_.cloneDeep({ local: customDomain, remote }), credentials);
       // 如果域名是 auto，临时修改为预期的域名
       if (nameIsAuto) {
         domainPlan.local.domainName = domainName;
@@ -63,8 +62,8 @@ export default class PlanTrigger extends PlanDeployBase {
       // 本地缓存和线上配置相等：deploy 时不交互
       domainPlan.needInteract = _.isEqual(state, remote) ? false : changed;
       domainPlan.diff = text?.substring(2, text.length - 1);
-      logger.debug(`servicePlan needInteract: ${changed}`);
-      logger.debug(`servicePlan diff:\n${text}`);
+      logger.debug(`domainPlan needInteract: ${changed}`);
+      logger.debug(`domainPlan diff:\n${text}`);
 
       domainPlan.plan = this.diff(cloneRemote, domainPlan.local);
 
@@ -78,7 +77,7 @@ export default class PlanTrigger extends PlanDeployBase {
   }
 
   // TODO: methods 需要处理
-  private transfromConfig(domainPlan) {
+  private async transfromConfig(domainPlan, credentials) {
     const cloneRemote = this.clearInvalidField(domainPlan.remote, ['accountId', 'apiVersion', 'createdTime', 'lastModifiedTime']);
     if (!cloneRemote.certConfig?.certName) {
       delete cloneRemote.certConfig;
@@ -91,12 +90,23 @@ export default class PlanTrigger extends PlanDeployBase {
     if (!_.isEmpty(domainPlan.local.certConfig)) {
       const { privateKey, certificate } = domainPlan.local.certConfig;
 
-      if (privateKey && privateKey.endsWith('.pem')) {
-        domainPlan.local.certConfig.privateKey = fs.readFileSync(privateKey, { encoding: 'utf-8' });
+      const { HttpsCertConfig } = await core.loadComponent('devsapp/fc-core');
+      if (privateKey) {
+        domainPlan.local.certConfig.privateKey = await HttpsCertConfig.getCertKeyContent(privateKey, {
+          credentials,
+        });
       }
-      if (certificate && certificate.endsWith('.pem')) {
-        domainPlan.local.certConfig.certificate = fs.readFileSync(certificate, { encoding: 'utf-8' });
+      if (certificate) {
+        domainPlan.local.certConfig.certificate = await HttpsCertConfig.getCertKeyContent(certificate, {
+          credentials,
+        });
       }
+    } else if (domainPlan.local.certId) {
+      const { HttpsCertConfig } = await core.loadComponent('devsapp/fc-core');
+      domainPlan.local.certConfig = await HttpsCertConfig.getUserCertificateDetail(domainPlan.local.certId, {
+        credentials,
+      });
+      delete domainPlan.local.certId;
     }
     // 补全可省略的配置
     if (!_.isEmpty(domainPlan.local.routeConfigs)) {
