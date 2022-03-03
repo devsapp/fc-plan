@@ -131,7 +131,10 @@ export default class PlanFunction extends PlanDeployBase {
     }
     if (remote.runtime === 'custom-container') {
       delete remote.customContainerConfig?.accelerationInfo;
-      delete remote.customContainerConfig?.instanceID;
+      // 非企业镜像比对比实例 ID
+      if (remote.customContainerConfig?.instanceID?.startsWith('registry.')) {
+        delete remote.customContainerConfig?.instanceID;
+      }
     }
     if (remote.runtime === 'custom') {
       if (_.has(remote, 'customRuntimeConfig.args') && _.isEmpty(remote?.customRuntimeConfig?.args)) {
