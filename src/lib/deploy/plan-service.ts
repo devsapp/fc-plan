@@ -131,6 +131,9 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
     } else {
       delete remote.tracingConfig;
     }
+    if (remote.role) {
+      remote.role = remote.role.toLocaleLowerCase();
+    }
 
     // 存在需要角色的 auto 配置
     const roleLocalAuto = this.isAutoConfig(this.service.role);

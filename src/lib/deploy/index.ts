@@ -6,6 +6,11 @@ import PlanTrigger from './plan-trigger';
 import PlanDomain from './plan-domain';
 
 export default class PlanDeploy {
+  credentials: any;
+
+  constructor(credentials) {
+    this.credentials = credentials;
+  }
   async plan(localConfig, fcClient, subCommand) {
     const plan: any = {
       region: localConfig.region,
@@ -28,7 +33,7 @@ export default class PlanDeploy {
 
     if (_.isEmpty(subCommand) || subCommand === 'domain') {
       const getDomainPlan = new PlanDomain(localConfig, fcClient);
-      plan.customDomains = await getDomainPlan.getPlan();
+      plan.customDomains = await getDomainPlan.getPlan(this.credentials);
     }
 
     return plan;

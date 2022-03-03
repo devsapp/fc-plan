@@ -50,7 +50,8 @@ export default class ComponentDemo {
     const fcClient = await client.getFcClient();
 
     if (_.isEqual(planType, 'deploy')) {
-      const planDeploy = new PlanDeploy();
+      const cred = _.isEmpty(credentials) ? await core.getCredential(access) : credentials;
+      const planDeploy = new PlanDeploy(cred);
       return await planDeploy.plan(props, fcClient, subCommand);
     } else if (_.isEqual(planType, 'remove')) {
       const planRemove = new PlanRemove();
