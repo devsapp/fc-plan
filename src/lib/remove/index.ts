@@ -99,7 +99,7 @@ export default class PlanRemove {
           }
           break;
         case 'version':
-          const version = await this.versionPlan(serviceName, aliasName);
+          const version = await this.versionPlan(serviceName, versionId);
           if (!_.isEmpty(version?.data)) {
             plan.push(version);
           }
