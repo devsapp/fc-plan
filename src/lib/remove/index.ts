@@ -1,4 +1,4 @@
-import { lodash as _ } from '@serverless-devs/core';
+import { lodash as _, CatchableError } from '@serverless-devs/core';
 import logger from '../../common/logger';
 import { getTableHeader, getDomainAutoName, isAutoConfig } from '../utils';
 
@@ -105,6 +105,9 @@ export default class PlanRemove {
           }
           break;
         case 'trigger':
+          if (_.isEmpty(triggerNames)) {
+            throw new CatchableError('The trigger name was not found, you can specify it by --trigger-name')
+          }
           const trigger = await this.triggerPlan(serviceName, functionName, triggerNames);
           if (!_.isEmpty(trigger?.data)) {
             plan.push(trigger);
@@ -112,7 +115,7 @@ export default class PlanRemove {
           break;
         case 'function':
           if (_.isNil(functionName)) {
-            throw new Error('The functionName was not found, you can specify it by --function-name')
+            throw new CatchableError('The functionName was not found, you can specify it by --function-name')
           }
           const func = await this.functionPlan(serviceName, functionName);
           if (!_.isEmpty(func?.data)) {
@@ -170,7 +173,10 @@ export default class PlanRemove {
           logger.error(`Not fount subCommand ${subCommand}.`);
       }
     } catch (ex) {
-      logger.error(`remove plan error:\n${ex.code}: ${ex.message}`);
+      if (ex?.name === 'CatchableError') {
+        throw ex;
+      }
+      logger.error(`remove plan error:\n${ex.code || ex.name}: ${ex.message}`);
     }
 
     return plan;
@@ -216,10 +222,10 @@ export default class PlanRemove {
 
   private async triggerPlan(serviceName: string, functionName: string, triggerNames?: string[]) {
     if (_.isNil(serviceName)) {
-      throw new Error('The serviceName was not found, you can specify it by --service-name')
+      throw new CatchableError('The serviceName was not found, you can specify it by --service-name')
     }
     if (_.isNil(functionName)) {
-      throw new Error('The functionName was not found, you can specify it by --function-name')
+      throw new CatchableError('The functionName was not found, you can specify it by --function-name')
     }
 
     let triggers = await this.fcClient.get_all_list_data(`/services/${serviceName}/functions/${functionName}/triggers`, 'triggers');
@@ -235,7 +241,7 @@ export default class PlanRemove {
 
   private async versionPlan(serviceName: string, versionId?: string) {
     if (_.isNil(serviceName)) {
-      throw new Error('The serviceName was not found, you can specify it by --service-name')
+      throw new CatchableError('The serviceName was not found, you can specify it by --service-name')
     }
 
     let versions = await this.fcClient.get_all_list_data(`/services/${serviceName}/versions`, 'versions');;
@@ -251,7 +257,7 @@ export default class PlanRemove {
 
   private async aliasPlan(serviceName: string, aliasName?: string) {
     if (_.isNil(serviceName)) {
-      throw new Error('The serviceName was not found, you can specify it by --service-name')
+      throw new CatchableError('The serviceName was not found, you can specify it by --service-name')
     }
 
     let alias;
@@ -284,10 +290,10 @@ export default class PlanRemove {
 
   private async provisionPlan(serviceName: string, functionName?: string, qualifier?: string) {
     if (_.isNil(serviceName)) {
-      throw new Error('The serviceName was not found, you can specify it by --service-name')
+      throw new CatchableError('The serviceName was not found, you can specify it by --service-name')
     }
     if (!_.isNil(qualifier) && _.isEmpty(functionName)) {
-      throw new Error('When the functionName exists, the qualifier must exist, which can be specified by --function-name');
+      throw new CatchableError('When the functionName exists, the qualifier must exist, which can be specified by --function-name');
     }
 
     let provisionConfigs;
@@ -335,10 +341,10 @@ export default class PlanRemove {
 
   private async onDemandPlan(serviceName: string, functionName?: string, qualifier?: string) {
     if (_.isEmpty(serviceName)) {
-      throw new Error('The serviceName was not found, you can specify it by --service-name')
+      throw new CatchableError('The serviceName was not found, you can specify it by --service-name')
     }
     if ((!_.isEmpty(qualifier) && _.isEmpty(functionName)) || (!_.isEmpty(functionName) && _.isEmpty(qualifier))) {
-      throw new Error('When the functionName exists, the qualifier must exist, which can be specified by --function-name');
+      throw new CatchableError('When the functionName exists, the qualifier must exist, which can be specified by --function-name');
     }
 
     let ondemands;
@@ -372,7 +378,7 @@ export default class PlanRemove {
 
   private async layerPlan(layerName, versionId) {
     if (_.isNil(layerName)) {
-      throw new Error('The parameter layerName was not found, please use --layer-name to specify');
+      throw new CatchableError('The parameter layerName was not found, please use --layer-name to specify');
     }
 
     let lasyers;
