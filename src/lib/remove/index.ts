@@ -292,12 +292,12 @@ export default class PlanRemove {
     if (_.isNil(serviceName)) {
       throw new CatchableError('The serviceName was not found, you can specify it by --service-name')
     }
-    if (!_.isNil(qualifier) && _.isEmpty(functionName)) {
-      throw new CatchableError('When the functionName exists, the qualifier must exist, which can be specified by --function-name');
+    if (_.isNil(qualifier) && functionName) {
+      throw new CatchableError('When the qualifier exists, the functionName must exist, which can be specified by --function-name');
     }
 
     let provisionConfigs;
-    if (qualifier) {
+    if (qualifier && functionName) {
       const { data } = await this.fcClient.getProvisionConfig(serviceName, functionName, qualifier);
       if (!_.isEmpty(data)) {
         provisionConfigs = [data];
@@ -344,12 +344,12 @@ export default class PlanRemove {
       throw new CatchableError('The serviceName was not found, you can specify it by --service-name')
     }
 
-    if (!_.isNil(qualifier) && _.isEmpty(functionName)) {
+    if (_.isNil(qualifier) && functionName) {
       throw new CatchableError('When the functionName exists, the qualifier must exist, which can be specified by --function-name');
     }
 
     let ondemands;
-    if (qualifier) {
+    if (qualifier && functionName) {
       const { data } = await this.fcClient.getOnDemandConfig(serviceName, functionName, qualifier)
       if (!_.isEmpty(data)) {
         ondemands = [data];
@@ -358,6 +358,7 @@ export default class PlanRemove {
       ondemands = (await this.fcClient.get_all_list_data('/on-demand-configs', 'configs', {
         prefix: serviceName ? `services/${serviceName}` : '',
       }));
+      ondemands = qualifier ? ondemands?.filter((item) => item.resource.startsWith(`services/${serviceName}.${qualifier}/`)) : ondemands;
     }
 
     return {
