@@ -343,7 +343,8 @@ export default class PlanRemove {
     if (_.isEmpty(serviceName)) {
       throw new CatchableError('The serviceName was not found, you can specify it by --service-name')
     }
-    if ((!_.isEmpty(qualifier) && _.isEmpty(functionName)) || (!_.isEmpty(functionName) && _.isEmpty(qualifier))) {
+
+    if (!_.isNil(qualifier) && _.isEmpty(functionName)) {
       throw new CatchableError('When the functionName exists, the qualifier must exist, which can be specified by --function-name');
     }
 
