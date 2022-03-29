@@ -105,6 +105,9 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
         servicePlan.local.vpcConfig = remote.vpcConfig;
       }
     }
+    if (_.has(remote, 'vpcConfig.anytunnelViaENI')) {
+      delete remote.vpcConfig?.anytunnelViaENI;
+    }
 
     // 存储配置
     const nasLocalConfigAuto = this.isAutoConfig(this.service.nasConfig);
