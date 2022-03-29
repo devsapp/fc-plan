@@ -96,6 +96,13 @@ export default class PlanTrigger extends PlanDeployBase {
       }
     }
 
+    if (triggerType === 'oss' && _.isObject(local.config?.filter)) {
+      local.config.filter = this.lowerJSONKey(local.config.filter);
+    }
+    if (!local.role && remote.invocationRole) {
+      local.role = remote.invocationRole;
+    }
+
     triggerPlan.local = local;
     return {
       triggerPlan,
