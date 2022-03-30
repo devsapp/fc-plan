@@ -71,4 +71,13 @@ export default abstract class PlanDeployBase {
   diff(remote, local) {
     return Diff.diff(remote, local);
   }
+
+  lowerJSONKey(jsonObj){
+    for (const key in jsonObj){
+      const value = jsonObj[key];
+      jsonObj[key.toLowerCase()] = _.isObject(value) ? this.lowerJSONKey(value) : value;
+      delete(jsonObj[key]);
+    }
+    return jsonObj;
+  }
 }
