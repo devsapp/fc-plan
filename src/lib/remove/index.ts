@@ -20,7 +20,7 @@ export default class PlanRemove {
   fcClient: any;
 
   async plan(props, fcClient, subCommand, parsedData) {
-    if (!COMMAND.includes(subCommand)) {
+    if (subCommand && !COMMAND.includes(subCommand)) {
       return { errorMessage: `Does not support ${subCommand} command` };
     }
 
@@ -55,7 +55,7 @@ export default class PlanRemove {
     const aliasName = parsedData['alias-name'];
 
     let showTitle = `Need to delete the resource in the \x1B[1m${region}\x1B[0m area`;
-    if (['domain', 'layer'].includes(subCommand)) {
+    if (_.isEmpty(subCommand) || ['domain', 'layer'].includes(subCommand)) {
       showTitle += ':\n';
     } else {
       showTitle += `, the operation service is \x1B[1m${serviceName}\x1B[0m:\n`;
@@ -63,6 +63,16 @@ export default class PlanRemove {
     logger.log(showTitle);
     const plan = [];
     try {
+      if (_.isEmpty(subCommand)) {
+        await this.caseService(serviceName, plan);
+
+        const domains = await this.domainPlan(customDomains);
+        if (!_.isEmpty(domains?.data)) {
+          plan.push(domains);
+        }
+        return plan;
+      }
+
       // version 需要检测 alias / ondemand / provision
       // alias 需要检测 ondemand / provision
       // function 需要检测 latest 的 ondemand / provision
@@ -128,46 +138,7 @@ export default class PlanRemove {
           }
           break;
         case 'service':
-          const servicePlan = await this.servicePlan(serviceName);
-          plan.push(servicePlan);
-
-          const onDemandPlan = await this.onDemandPlan(serviceName);
-          if (!_.isEmpty(onDemandPlan?.data)) {
-            plan.push(onDemandPlan);
-          }
-
-          const provisionPlan = await this.provisionPlan(serviceName);
-          if (!_.isEmpty(provisionPlan?.data)) {
-            plan.push(provisionPlan);
-          }
-
-          const aliasPlan = await this.aliasPlan(serviceName);
-          if (!_.isEmpty(aliasPlan?.data)) {
-            plan.push(aliasPlan);
-          }
-
-          const versionPlan = await this.versionPlan(serviceName);
-          if (!_.isEmpty(versionPlan?.data)) {
-            plan.push(versionPlan);
-          }
-
-          const functionPlan = await this.functionPlan(serviceName);
-          if (!_.isEmpty(functionPlan?.data)) {
-            plan.push(functionPlan);
-
-            let triggers = [];
-            for (const functionConfig of functionPlan.data) {
-              const triggerPlan = await this.triggerPlan(serviceName, functionConfig.functionName);
-              if (!_.isEmpty(triggerPlan?.data)) {
-                triggers = _.concat(triggers, triggerPlan?.data);
-              }
-            }
-            plan.push({
-              resources: 'triggers',
-              data: triggers,
-              header: getTableHeader(['functionName', 'triggerName', 'triggerType', 'qualifier']),
-            });
-          }
+          await this.caseService(serviceName, plan);
           break;
         default:
           logger.error(`Not fount subCommand ${subCommand}.`);
@@ -177,6 +148,51 @@ export default class PlanRemove {
         throw ex;
       }
       logger.error(`remove plan error:\n${ex.code || ex.name}: ${ex.message}`);
+    }
+
+    return plan;
+  }
+
+  private async caseService(serviceName, plan = []) {
+    const servicePlan = await this.servicePlan(serviceName);
+    plan.push(servicePlan);
+
+    const onDemandPlan = await this.onDemandPlan(serviceName);
+    if (!_.isEmpty(onDemandPlan?.data)) {
+      plan.push(onDemandPlan);
+    }
+
+    const provisionPlan = await this.provisionPlan(serviceName);
+    if (!_.isEmpty(provisionPlan?.data)) {
+      plan.push(provisionPlan);
+    }
+
+    const aliasPlan = await this.aliasPlan(serviceName);
+    if (!_.isEmpty(aliasPlan?.data)) {
+      plan.push(aliasPlan);
+    }
+
+    const versionPlan = await this.versionPlan(serviceName);
+    if (!_.isEmpty(versionPlan?.data)) {
+      plan.push(versionPlan);
+    }
+
+    const functionPlan = await this.functionPlan(serviceName);
+    if (!_.isEmpty(functionPlan?.data)) {
+      plan.push(functionPlan);
+
+      let triggers = [];
+      for (const functionConfig of functionPlan.data) {
+        const triggerPlan = await this.triggerPlan(serviceName, functionConfig.functionName);
+        if (!_.isEmpty(triggerPlan?.data)) {
+          triggers = _.concat(triggers, triggerPlan?.data);
+        }
+      }
+      plan.push({
+        resources: 'triggers',
+        data: triggers,
+        header: getTableHeader(['functionName', 'triggerName', 'triggerType', 'qualifier']),
+      });
     }
 
     return plan;
