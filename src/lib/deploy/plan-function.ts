@@ -45,7 +45,7 @@ export default class PlanFunction extends PlanDeployBase {
         needInteract: false,
       };
     }
-    
+
     const { functionPlan, cloneRemote } = await this.transfromConfig(_.cloneDeep({
       remote,
       local: _.defaults(this.functionConfig, FUNCTION_CONF_DEFAULT),
@@ -135,11 +135,15 @@ export default class PlanFunction extends PlanDeployBase {
       if (remote.customContainerConfig?.instanceID?.startsWith('registry.')) {
         delete remote.customContainerConfig?.instanceID;
       }
+    } else {
+      delete remote.customContainerConfig;
     }
     if (remote.runtime === 'custom') {
       if (_.has(remote, 'customRuntimeConfig.args') && _.isEmpty(remote?.customRuntimeConfig?.args)) {
         delete remote.customRuntimeConfig.args;
       }
+    } else {
+      delete remote.customRuntimeConfig;
     }
 
     const remoteAsyncConfiguration = await this.getFunctionAsyncConfig();
@@ -188,7 +192,7 @@ export default class PlanFunction extends PlanDeployBase {
       const destination = asyncConfiguration.destination || {};
       const { onSuccess, onFailure } = destination;
       delete asyncConfiguration.destination;
-  
+
       const destinationConfig: any = {};
       if (onSuccess) {
         destinationConfig.onSuccess = {
@@ -221,7 +225,7 @@ export default class PlanFunction extends PlanDeployBase {
     }
   }
 
-  private rmCustomContainerConfigAccelerationInfo (obj) {
+  private rmCustomContainerConfigAccelerationInfo(obj) {
     if (isCustomContainer(obj?.runtime)) {
       if (_.has(obj.customContainerConfig, 'accelerationInfo')) {
         delete obj.customContainerConfig.accelerationInfo;
@@ -243,7 +247,7 @@ export default class PlanFunction extends PlanDeployBase {
     return obj;
   }
 
-  private async getFunctionConfig () {
+  private async getFunctionConfig() {
     try {
       const { data } = await this.fcClient.getFunction(this.serviceName, this.functionName);
       return data;

@@ -20,11 +20,7 @@ export default class ComponentDemo {
       project = {},
     } = inputs;
     const { access } = project;
-
-    // TODO:
-    // 1. config 和 code diff 理论上是需要分开的
-    // 2. plan 和 deploy，diff 理论上也是需要分开的
-    const parsedArgs = core.commandParse(inputs, {
+    const parsedArgs: any = core.commandParse(inputs, {
       string: ['sub-command', 'plan-type'],
     });
     const {
@@ -55,7 +51,7 @@ export default class ComponentDemo {
       return await planDeploy.plan(props, fcClient, subCommand);
     } else if (_.isEqual(planType, 'remove')) {
       const planRemove = new PlanRemove();
-      return await planRemove.plan(props, fcClient, subCommand || 'service', parsedArgs?.data || {});
+      return await planRemove.plan(props, fcClient, subCommand || '', parsedArgs?.data || {});
     } else {
       throw new Error(`The incoming ${planType} command is not supported`);
     }

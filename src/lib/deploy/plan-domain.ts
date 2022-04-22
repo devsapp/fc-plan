@@ -36,7 +36,7 @@ export default class PlanTrigger extends PlanDeployBase {
       logger.debug(`domain ${domainName} local config: ${JSON.stringify(customDomain)}`);
       logger.debug(`domain ${domainName} state config: ${state ? JSON.stringify(state) : 'null'}`);
       logger.debug(`domain ${domainName} remote config: ${remote ? JSON.stringify(remote) : 'null'}`);
-      
+
       // TODO: 没有权限
       if (_.isString(remote)) { }
       // 远端不存在：deploy 时不交互
@@ -82,10 +82,13 @@ export default class PlanTrigger extends PlanDeployBase {
     if (!cloneRemote.certConfig?.certName) {
       delete cloneRemote.certConfig;
     }
+    if (!cloneRemote.tlsConfig?.minVersion) {
+      delete cloneRemote.tlsConfig;
+    }
     if (!_.isEmpty(cloneRemote.routeConfig?.routes)) {
       cloneRemote.routeConfig = cloneRemote.routeConfig.routes.map(item => _.omitBy(item, (char, key) => _.isNull(char) || key === 'methods'));
     }
-  
+
     // 读取配置文件
     if (!_.isEmpty(domainPlan.local.certConfig)) {
       const { privateKey, certificate } = domainPlan.local.certConfig;
