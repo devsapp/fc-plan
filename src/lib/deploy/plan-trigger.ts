@@ -16,7 +16,7 @@ export default class PlanTrigger extends PlanDeployBase {
       const { name, type } = triggerConfig;
       // 获取缓存
       const state = await core.getState(`${this.accountId}-${this.region}-${this.serviceName}-${this.functionName}-${name}`);
-      
+
       // 获取线上配置
       const remote = await this.getTriggerConfig(name);
       logger.debug(`function local config: ${JSON.stringify(triggerConfig)}`);
@@ -51,7 +51,7 @@ export default class PlanTrigger extends PlanDeployBase {
       logger.debug(`functionPlan needInteract: ${changed}`);
       logger.debug(`functionPlan diff:\n${text}`);
       triggerPlan.plan = this.diff(cloneRemote, triggerPlan.local);
-      
+
       plan.push(triggerPlan);
     }
     return plan;
@@ -74,12 +74,29 @@ export default class PlanTrigger extends PlanDeployBase {
       cloneRemote.qualifier = remote.qualifier;
     }
     if (!_.isNil(remote.triggerConfig)) {
+      const { eventSourceType } = remote.triggerConfig;
       cloneRemote.config = remote.triggerConfig;
+
+      if (eventSourceType === 'RocketMQ') {
+        delete cloneRemote.config.sourceMNSParameters;
+        delete cloneRemote.config.sourceRabbitMQParameters;
+      } else if (eventSourceType === 'Default') {
+        delete cloneRemote.config.sourceMNSParameters;
+        delete cloneRemote.config.sourceRabbitMQParameters;
+        delete cloneRemote.config.sourceRocketMQParameters;
+      } else if (eventSourceType === 'MNS') {
+        delete cloneRemote.config.sourceRabbitMQParameters;
+        delete cloneRemote.config.sourceRocketMQParameters;
+      } else if (eventSourceType === 'RabbitMQ') {
+        delete cloneRemote.config.sourceMNSParameters;
+        delete cloneRemote.config.sourceRocketMQParameters;
+      }
     }
-    if (!_.isNil(remote.invocationRole)) {
+
+    if (!_.isEmpty(remote.invocationRole)) {
       cloneRemote.role = remote.invocationRole;
     }
-    if (!_.isNil(remote.sourceArn)) {
+    if (!_.isNil(remote.sourceArn) && remote.triggerType !== 'eventbridge') {
       cloneRemote.sourceArn = remote.sourceArn;
     }
 

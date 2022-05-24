@@ -76,7 +76,7 @@ export default class PlanRemove {
       // version 需要检测 alias / ondemand / provision
       // alias 需要检测 ondemand / provision
       // function 需要检测 latest 的 ondemand / provision
-      switch(subCommand) {
+      switch (subCommand) {
         case 'domain':
           const domains = await this.domainPlan(customDomains);
           if (!_.isEmpty(domains?.data)) {
@@ -202,7 +202,7 @@ export default class PlanRemove {
     if (_.isEmpty(customDomains)) {
       return {};
     }
-    
+
     let domains = await this.fcClient.get_all_list_data('/custom-domains', 'customDomains');;
     domains = domains.filter(item => customDomains.includes(item.domainName));
 
@@ -248,6 +248,8 @@ export default class PlanRemove {
     if (!_.isEmpty(triggerNames)) {
       triggers = triggers?.filter(({ triggerName }) => triggerNames.includes(triggerName));
     }
+    // EB 触发器在 EB 创建的无法处理或者删除
+    triggers = triggers?.filter(({ triggerName }) => !triggerName.includes('#'));
     return {
       resources: 'trigger',
       data: triggers.map(item => ({ ...item, functionName })),
@@ -345,12 +347,12 @@ export default class PlanRemove {
     return {
       resources: 'provision',
       data: provisionConfigs?.filter((item) => item.target || item.current)
-      .map((item) => ({
-        serviceName: item.resource.split('#')[1],
-        qualifier: item.resource.split('#')[2],
-        functionName: item.resource.split('#')[3],
-        ...item,
-      })),
+        .map((item) => ({
+          serviceName: item.resource.split('#')[1],
+          qualifier: item.resource.split('#')[2],
+          functionName: item.resource.split('#')[3],
+          ...item,
+        })),
       header: getTableHeader(showKey),
     }
   }
