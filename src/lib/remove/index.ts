@@ -309,7 +309,7 @@ export default class PlanRemove {
       throw new CatchableError('The serviceName was not found, you can specify it by --service-name')
     }
     if (_.isNil(qualifier) && functionName) {
-      throw new CatchableError('When the qualifier exists, the functionName must exist, which can be specified by --function-name');
+      throw new CatchableError('When the functionName exists, the qualifier must exist, which can be specified by --qualifier');
     }
 
     let provisionConfigs;
@@ -361,7 +361,7 @@ export default class PlanRemove {
     }
 
     if (_.isNil(qualifier) && functionName) {
-      throw new CatchableError('When the functionName exists, the qualifier must exist, which can be specified by --function-name');
+      throw new CatchableError('When the qualifier exists, the functionName must exist, which can be specified by --qualifier');
     }
 
     let ondemands;
