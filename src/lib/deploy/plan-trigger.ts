@@ -1,6 +1,7 @@
 import * as core from '@serverless-devs/core';
 import diff from 'variable-diff';
 import logger from '../../common/logger';
+import { ENABLE_EB_TRIGGER_HEADER } from '../utils';
 import PlanDeployBase from "./plan-base";
 
 const _ = core.lodash;
@@ -129,7 +130,7 @@ export default class PlanTrigger extends PlanDeployBase {
 
   private async getTriggerConfig(triggerName) {
     try {
-      const { data } = await this.fcClient.getTrigger(this.serviceName, this.functionName, triggerName);
+      const { data } = await this.fcClient.getTrigger(this.serviceName, this.functionName, triggerName, ENABLE_EB_TRIGGER_HEADER);
       return data;
     } catch (ex) {
       logger.debug(`info error:: ${ex.message}`);

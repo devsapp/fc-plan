@@ -21,3 +21,7 @@ export const getTableHeader = (showKey) => {
     value,
   }) : ({ ...header_option, ...value })))
 };
+
+export const ENABLE_EB_TRIGGER_HEADER = {
+  'x-fc-enable-eventbridge-trigger': 'enable',
+}

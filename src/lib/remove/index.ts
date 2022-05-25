@@ -1,6 +1,6 @@
 import { lodash as _, CatchableError } from '@serverless-devs/core';
 import logger from '../../common/logger';
-import { getTableHeader, getDomainAutoName, isAutoConfig } from '../utils';
+import { getTableHeader, getDomainAutoName, isAutoConfig, ENABLE_EB_TRIGGER_HEADER } from '../utils';
 
 
 const COMMAND: string[] = [
@@ -244,7 +244,8 @@ export default class PlanRemove {
       throw new CatchableError('The functionName was not found, you can specify it by --function-name')
     }
 
-    let triggers = await this.fcClient.get_all_list_data(`/services/${serviceName}/functions/${functionName}/triggers`, 'triggers');
+    const listTriggersPath = `/services/${serviceName}/functions/${functionName}/triggers`;
+    let triggers = await this.fcClient.get_all_list_data(listTriggersPath, 'triggers', {}, ENABLE_EB_TRIGGER_HEADER);
     if (!_.isEmpty(triggerNames)) {
       triggers = triggers?.filter(({ triggerName }) => triggerNames.includes(triggerName));
     }
