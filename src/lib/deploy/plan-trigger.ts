@@ -1,6 +1,7 @@
 import * as core from '@serverless-devs/core';
 import diff from 'variable-diff';
 import logger from '../../common/logger';
+import { ENABLE_EB_TRIGGER_HEADER } from '../utils';
 import PlanDeployBase from "./plan-base";
 
 const _ = core.lodash;
@@ -16,7 +17,7 @@ export default class PlanTrigger extends PlanDeployBase {
       const { name, type } = triggerConfig;
       // 获取缓存
       const state = await core.getState(`${this.accountId}-${this.region}-${this.serviceName}-${this.functionName}-${name}`);
-      
+
       // 获取线上配置
       const remote = await this.getTriggerConfig(name);
       logger.debug(`function local config: ${JSON.stringify(triggerConfig)}`);
@@ -51,7 +52,7 @@ export default class PlanTrigger extends PlanDeployBase {
       logger.debug(`functionPlan needInteract: ${changed}`);
       logger.debug(`functionPlan diff:\n${text}`);
       triggerPlan.plan = this.diff(cloneRemote, triggerPlan.local);
-      
+
       plan.push(triggerPlan);
     }
     return plan;
@@ -74,12 +75,27 @@ export default class PlanTrigger extends PlanDeployBase {
       cloneRemote.qualifier = remote.qualifier;
     }
     if (!_.isNil(remote.triggerConfig)) {
+      const { eventSourceType } = remote.triggerConfig?.eventSourceConfig || {};
       cloneRemote.config = remote.triggerConfig;
+
+      if (eventSourceType === 'RocketMQ') {
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceMNSParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceRabbitMQParameters;
+      } else if (eventSourceType === 'Default') {
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters;
+      } else if (eventSourceType === 'MNS') {
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceRabbitMQParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceRocketMQParameters;
+      } else if (eventSourceType === 'RabbitMQ') {
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceMNSParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceRocketMQParameters;
+      }
     }
-    if (!_.isNil(remote.invocationRole)) {
+
+    if (!_.isEmpty(remote.invocationRole)) {
       cloneRemote.role = remote.invocationRole;
     }
-    if (!_.isNil(remote.sourceArn)) {
+    if (!_.isNil(remote.sourceArn) && remote.triggerType !== 'eventbridge') {
       cloneRemote.sourceArn = remote.sourceArn;
     }
 
@@ -112,7 +128,7 @@ export default class PlanTrigger extends PlanDeployBase {
 
   private async getTriggerConfig(triggerName) {
     try {
-      const { data } = await this.fcClient.getTrigger(this.serviceName, this.functionName, triggerName);
+      const { data } = await this.fcClient.getTrigger(this.serviceName, this.functionName, triggerName, ENABLE_EB_TRIGGER_HEADER);
       return data;
     } catch (ex) {
       logger.debug(`info error:: ${ex.message}`);
