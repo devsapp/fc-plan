@@ -75,22 +75,20 @@ export default class PlanTrigger extends PlanDeployBase {
       cloneRemote.qualifier = remote.qualifier;
     }
     if (!_.isNil(remote.triggerConfig)) {
-      const { eventSourceType } = remote.triggerConfig;
+      const { eventSourceType } = remote.triggerConfig?.eventSourceConfig || {};
       cloneRemote.config = remote.triggerConfig;
 
       if (eventSourceType === 'RocketMQ') {
-        delete cloneRemote.config.sourceMNSParameters;
-        delete cloneRemote.config.sourceRabbitMQParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceMNSParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceRabbitMQParameters;
       } else if (eventSourceType === 'Default') {
-        delete cloneRemote.config.sourceMNSParameters;
-        delete cloneRemote.config.sourceRabbitMQParameters;
-        delete cloneRemote.config.sourceRocketMQParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters;
       } else if (eventSourceType === 'MNS') {
-        delete cloneRemote.config.sourceRabbitMQParameters;
-        delete cloneRemote.config.sourceRocketMQParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceRabbitMQParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceRocketMQParameters;
       } else if (eventSourceType === 'RabbitMQ') {
-        delete cloneRemote.config.sourceMNSParameters;
-        delete cloneRemote.config.sourceRocketMQParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceMNSParameters;
+        delete cloneRemote.config?.eventSourceConfig?.eventSourceParameters?.sourceRocketMQParameters;
       }
     }
 
