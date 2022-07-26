@@ -10,11 +10,12 @@ export default abstract class PlanDeployBase {
   functionConfig: any;
   triggers: any;
   customDomains: any;
+  credentials: any;
 
   fcClient: any;
   accountId: string;
 
-  constructor(localConfig, fcClient) {
+  constructor(localConfig, fcClient, credentials) {
     const {
       region,
       service,
@@ -33,9 +34,10 @@ export default abstract class PlanDeployBase {
     this.customDomains = customDomains;
     this.serviceName = this.service?.name;
     this.functionName = this.functionConfig?.name;
+    this.credentials = credentials;
   }
 
-  abstract getPlan(credentials?);
+  abstract getPlan();
 
   isAutoConfig = isAutoConfig
 

@@ -38,7 +38,7 @@ export default class PlanService extends PlanDeployBase {
     if (state?.statefulConfig?.name) {
       delete state?.statefulConfig?.name;
     }
-    const { servicePlan, cloneRemote } = this.transfromConfig(_.cloneDeep({
+    const { servicePlan, cloneRemote } = await this.transfromConfig(_.cloneDeep({
       remote,
       local: _.defaults(this.service, SERVICE_CONF_DEFAULT),
     }));
@@ -61,8 +61,17 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
 
     // 转化后的线上配置和本地做 diff
     const { changed, text } = diff(cloneRemote, servicePlan.local);
-    // 本地缓存和线上配置相等：deploy 时不交互
-    servicePlan.needInteract = _.isEqual(state?.statefulConfig || {}, remote) ? false : changed;
+
+    // 是否需要交互
+    const nasLocalConfigAuto = this.isAutoConfig(servicePlan.local.nasConfig);
+    if (nasLocalConfigAuto && !_.isEmpty(cloneRemote.nasConfig)) { // nas配置是auto，但是线上存在配置认为是线上的节点不存在了，需要交互
+      servicePlan.needInteract = true;
+    } else if (_.isEqual(state?.statefulConfig || {}, remote)) { // 本地缓存和线上配置相等：deploy 时不交互
+      servicePlan.needInteract = false;
+    } else {
+      servicePlan.needInteract = changed; // 线上配置和本地做 diff，有变化再交互
+    }
+
     logger.debug('diff service remote and state?.statefulConfig::');
     logger.debug(diff(state?.statefulConfig || {}, remote)?.text);
     logger.debug(`servicePlan needInteract: ${servicePlan.needInteract}`);
@@ -79,7 +88,7 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
 
   // 转化线上配置：监测到线上配置为空则删除相关配置
   // 转化本地配置：监测到线上存在配置，本地是 auto，则复用线上配置
-  private transfromConfig(servicePlan) {
+  private async transfromConfig(servicePlan) {
     const { remote } = servicePlan;
     remote.name = this.serviceName;
     // 日志配置 
@@ -125,7 +134,24 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
         }),
       };
       if (nasLocalConfigAuto) {
-        servicePlan.local.nasConfig = remote.nasConfig;
+        // check nas 是否存在
+        const mountTarget = _.get(remote, 'nasConfig.mountPoints[0].serverAddr', '');
+        if (mountTarget) {
+          const checkPayload = { region: this.region, mountTarget };
+          try {
+            const { checkNasMountTargetsExists } = await core.loadComponent('devsapp/fc-core');
+            const mountTargetExists = await checkNasMountTargetsExists(this.credentials, checkPayload);
+            if (mountTargetExists) {
+              servicePlan.local.nasConfig = remote.nasConfig;
+            } else {
+              logger.log('');
+              logger.warn(`NasConfig is auto,but mountTarget[${mountTarget}] not exists, do not reuse Online config.`);
+            }
+          } catch (ex) {
+            logger.debug(`checkNasMountTargetsExists error: ${ex.toString()}`);
+            servicePlan.local.nasConfig = remote.nasConfig;
+          }
+        }
       }
     }
     // 链路追踪
