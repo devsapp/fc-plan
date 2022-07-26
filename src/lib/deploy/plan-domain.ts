@@ -6,7 +6,7 @@ import PlanDeployBase from "./plan-base";
 
 const _ = core.lodash;
 export default class PlanTrigger extends PlanDeployBase {
-  async getPlan(credentials) {
+  async getPlan() {
     if (_.isEmpty(this.customDomains)) {
       logger.debug(`customDomains config is empty, skip getTriggersPlan`);
       return {};
@@ -50,7 +50,7 @@ export default class PlanTrigger extends PlanDeployBase {
         continue;
       }
 
-      const { domainPlan, cloneRemote } = await this.transfromConfig(_.cloneDeep({ local: customDomain, remote }), credentials);
+      const { domainPlan, cloneRemote } = await this.transfromConfig(_.cloneDeep({ local: customDomain, remote }), this.credentials);
       // 如果域名是 auto，临时修改为预期的域名
       if (nameIsAuto) {
         domainPlan.local.domainName = domainName;
