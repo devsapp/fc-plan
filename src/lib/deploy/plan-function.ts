@@ -174,7 +174,7 @@ export default class PlanFunction extends PlanDeployBase {
     if (!_.isEmpty(functionPlan.local.customDNS)) {
       functionPlan.local.customDNS = this.objectDeepTransfromString(functionPlan.local.customDNS);
     }
-    if (['custom', 'custom-container'].includes(functionPlan.local.runtime) && _.isNil(functionPlan.local.caPort)) {
+    if (['custom'].includes(functionPlan.local.runtime) && _.isNil(functionPlan.local.caPort)) {
       functionPlan.local.caPort = DEFAULT_CA_PORT;
     }
     if (!_.isEmpty(functionPlan.local.initializer)) {
