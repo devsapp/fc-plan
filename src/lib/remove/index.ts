@@ -250,7 +250,7 @@ export default class PlanRemove {
       triggers = triggers?.filter(({ triggerName }) => triggerNames.includes(triggerName));
     }
     // EB 触发器在 EB 创建的无法处理或者删除
-    triggers = triggers?.filter(({ triggerName }) => !triggerName.includes('#'));
+    triggers = triggers?.filter(({ triggerName }) => !triggerName.includes('|'));
     return {
       resources: 'trigger',
       data: triggers.map(item => ({ ...item, functionName })),
