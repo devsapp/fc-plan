@@ -23,6 +23,7 @@ export default class Client {
         access: this.access,
         credentials: this.credentials,
         region: this.region,
+        timeout: 60,
       });
 
       this.fcClient = fcClient;

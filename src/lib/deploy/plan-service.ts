@@ -34,7 +34,7 @@ export default class PlanService extends PlanDeployBase {
         needInteract: false,
       };
     }
-    
+
     if (state?.statefulConfig?.name) {
       delete state?.statefulConfig?.name;
     }
@@ -57,6 +57,10 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
     } else if (_.isString(localRole)) {
       // role Arn 应该不区分大小写
       servicePlan.local.role = localRole.toLocaleLowerCase();
+    }
+
+    if (cloneRemote.vpcBinding) {
+      remote.vpcBinding = cloneRemote.vpcBinding;
     }
 
     // 转化后的线上配置和本地做 diff
@@ -109,7 +113,7 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
       if (!_.isEmpty(this.service.vpcConfig?.vswitchIds)) {
         remote.vpcConfig.vswitchIds = remote.vpcConfig.vSwitchIds;
         delete remote.vpcConfig.vSwitchIds;
-      // 本地 vpcConfig 是 auto，或者本地配置不存在并且 nasConfig 是 auto 的：复用配置
+        // 本地 vpcConfig 是 auto，或者本地配置不存在并且 nasConfig 是 auto 的：复用配置
       } else if (vpcLocalConfigAuto) {
         servicePlan.local.vpcConfig = remote.vpcConfig;
       }
@@ -166,8 +170,10 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
 
     // 存在需要角色的 auto 配置
     const roleLocalAuto = this.isAutoConfig(this.service.role);
-    const hasFunctionAsyncConfig = _.has(this.functionConfig || {}, 'asyncConfiguration')
-    if (hasFunctionAsyncConfig || logLocalConfigAuto || vpcLocalConfigAuto || nasLocalConfigAuto || roleLocalAuto) {
+    const hasFunctionAsyncConfig = _.has(this.functionConfig || {}, 'asyncConfiguration');
+    const hasVpcBinding = _.has(this.service, 'vpcBinding');
+
+    if (hasVpcBinding || hasFunctionAsyncConfig || logLocalConfigAuto || vpcLocalConfigAuto || nasLocalConfigAuto || roleLocalAuto) {
       // 如果角色为 auto 或者没有配置角色，则复用配置
       if ((roleLocalAuto || _.isEmpty(this.service.role)) && !_.isEmpty(remote.role)) {
         servicePlan.local.role = remote.role;
@@ -180,7 +186,13 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
 
     // 删除本地配置不支持的字段
     const cloneRemote = this.clearInvalidField(remote, ['vendorConfig', 'serviceName', 'serviceId', 'createdTime', 'lastModifiedTime']);
-    return { cloneRemote, servicePlan }
+
+    const vpcBinding = await this.getVpcBinding(this.serviceName);
+    if (!_.isEmpty(vpcBinding)) {
+      _.set(cloneRemote, 'vpcBinding', vpcBinding);
+    }
+
+    return { cloneRemote, servicePlan };
   }
 
   private async getServiceConfig() {
@@ -193,5 +205,10 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
         return ex.message;
       }
     }
+  }
+
+  private async getVpcBinding(serviceName: string) {
+    const { data } = await this.fcClient._listVpcbinding(serviceName);
+    return _.get(data, 'vpcIds');
   }
 }
