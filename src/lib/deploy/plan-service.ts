@@ -208,7 +208,11 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
   }
 
   private async getVpcBinding(serviceName: string) {
-    const { data } = await this.fcClient._listVpcbinding(serviceName);
-    return _.get(data, 'vpcIds');
+    try {
+      const { data } = await this.fcClient._listVpcbinding(serviceName);
+      return _.get(data, 'vpcIds');
+    } catch (ex) {
+      logger.debug(`getVpcBinding error code ${ex?.code}, error message: ${ex.message}`);
+    }
   }
 }
