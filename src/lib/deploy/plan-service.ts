@@ -103,6 +103,10 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
       servicePlan.local.logConfig = remote.logConfig;
     }
 
+    if (_.isEmpty(remote.ossMountConfig?.mountPoints)) {
+      delete remote.ossMountConfig;
+    }
+
     // 专有网络配置
     const vpcLocalConfigAuto = this.isAutoConfig(this.service.vpcConfig) || (_.isEmpty(this.service.vpcConfig) && this.isAutoConfig(this.service.nasConfig));
     if (_.isEmpty(remote.vpcConfig?.vpcId)) {
@@ -122,7 +126,7 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
       delete remote.vpcConfig?.anytunnelViaENI;
     }
 
-    // 存储配置
+    // NAS 存储配置
     const nasLocalConfigAuto = this.isAutoConfig(this.service.nasConfig);
     if (_.isEmpty(remote.nasConfig?.mountPoints)) {
       delete remote.nasConfig;
