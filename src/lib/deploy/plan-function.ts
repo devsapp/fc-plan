@@ -145,9 +145,13 @@ export default class PlanFunction extends PlanDeployBase {
     } else {
       delete remote.customRuntimeConfig;
     }
+    if (_.has(remote, 'layersArnV2')) {
+      remote.layers = remote.layersArnV2;
+      delete remote.layersArnV2;
+    }
 
     const remoteAsyncConfiguration = await this.getFunctionAsyncConfig();
-    if (!_.isNil(remoteAsyncConfiguration)) {
+    if (!_.isEmpty(remoteAsyncConfiguration)) {
       remote.asyncConfiguration = remoteAsyncConfiguration;
     }
 
@@ -214,12 +218,14 @@ export default class PlanFunction extends PlanDeployBase {
   private async getFunctionAsyncConfig() {
     try {
       const { data } = await this.fcClient.getFunctionAsyncConfig(this.serviceName, this.functionName, 'LATEST');
-      return {
+      const config = {
         destinationConfig: data.destinationConfig,
         maxAsyncEventAgeInSeconds: data.maxAsyncEventAgeInSeconds,
         statefulInvocation: data.statefulInvocation,
         maxAsyncRetryAttempts: data.maxAsyncRetryAttempts,
       };
+
+      return _.pickBy(config, _.identity);
     } catch (ex) {
       logger.debug(`getFunctionAsyncConfig error code: ${ex.code}, message ${ex.message}`);
     }
