@@ -103,7 +103,7 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
       servicePlan.local.logConfig = remote.logConfig;
     }
 
-    if (_.isEmpty(remote.ossMountConfig?.mountPoints)) {
+    if (_.isEmpty(remote.ossMountConfig?.mountPoints) && _.isNil(servicePlan.local?.ossMountConfig)) {
       delete remote.ossMountConfig;
     }
 
