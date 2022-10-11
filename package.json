@@ -22,6 +22,8 @@
     "url": "https://github.com/ServerlessTool/express-alibaba"
   },
   "scripts": {
+    "preln": "rm -rf ~/.s/components/devsapp.cn/devsapp/fc-plan/dist",
+    "ln": "ln -s $(pwd)/dist ~/.s/components/devsapp.cn/devsapp/fc-plan/dist",
     "start": "npm run prebuild && npm run watch",
     "watch": "tsc -w",
     "publish": "npm run build && s cli platform publish",
