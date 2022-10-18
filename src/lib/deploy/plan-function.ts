@@ -238,7 +238,7 @@ export default class PlanFunction extends PlanDeployBase {
       }
       const customContainerConfig = {};
       _.forIn(obj.customContainerConfig, (value, key) => {
-        if (!_.isEmpty(value)) {
+        if (!_.isNil(value)) {
           customContainerConfig[key] = value;
         }
       });
