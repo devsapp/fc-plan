@@ -219,13 +219,18 @@ export default class PlanFunction extends PlanDeployBase {
     try {
       const { data } = await this.fcClient.getFunctionAsyncConfig(this.serviceName, this.functionName, 'LATEST');
       const config = {
-        destinationConfig: data.destinationConfig,
         maxAsyncEventAgeInSeconds: data.maxAsyncEventAgeInSeconds,
         statefulInvocation: data.statefulInvocation,
         maxAsyncRetryAttempts: data.maxAsyncRetryAttempts,
       };
+      if (data.destinationConfig?.onSuccess) {
+        _.set(config, 'destinationConfig.onSuccess', data.destinationConfig.onSuccess);
+      }
+      if (data.destinationConfig?.onFailure) {
+        _.set(config, 'destinationConfig.onFailure', data.destinationConfig.onFailure);
+      }
 
-      return _.pickBy(config, _.identity);
+      return _.pickBy(config, (item) => !_.isNil(item));
     } catch (ex) {
       logger.debug(`getFunctionAsyncConfig error code: ${ex.code}, message ${ex.message}`);
     }
