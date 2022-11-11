@@ -26,7 +26,7 @@ export default class PlanTrigger extends PlanDeployBase {
 
       if (nameIsAuto) {
         if (_.isEmpty(state)) {
-          domainName = getDomainAutoName(this.functionName, this.serviceName, this.accountId, this.region);
+          domainName = core.genDomainName(this.accountId, this.region, this.serviceName, this.functionName) ;
         } else {
           domainName = state.domainName;
         }
