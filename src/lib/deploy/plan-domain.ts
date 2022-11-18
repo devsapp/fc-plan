@@ -26,7 +26,8 @@ export default class PlanTrigger extends PlanDeployBase {
 
       if (nameIsAuto) {
         if (_.isEmpty(state)) {
-          domainName = core.genDomainName(this.accountId, this.region, this.serviceName, this.functionName) ;
+          const { genDomainName } = await core.loadComponent('devsapp/fc-core');
+          domainName = genDomainName(this.accountId, this.region, this.serviceName, this.functionName) ;
         } else {
           domainName = state.domainName;
         }
