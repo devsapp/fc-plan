@@ -32,12 +32,12 @@
     "build": "npm run esbuild"
   },
   "dependencies": {
-    "@serverless-devs/core": "latest",
     "deep-diff-pizza": "^1.0.0",
     "variable-diff": "^2.0.2"
   },
   "autoInstall": false,
   "devDependencies": {
+     "@serverless-devs/core": "latest",
     "@types/lodash": "^4.14.177",
     "@types/node": "^14.0.23",
     "@typescript-eslint/eslint-plugin": "^3.10.0",
