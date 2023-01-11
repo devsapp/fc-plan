@@ -14,6 +14,14 @@ export const FUNCTION_CONF_DEFAULT = {
   instanceType: 'e1',
 };
 
+const FUNCTION_CUSTOM_HEALTH_CHECK_CONFIG = {
+  initialDelaySeconds: 0,
+  periodSeconds: 3,
+  timeoutSeconds: 1,
+  failureThreshold: 1,
+  successThreshold: 2,
+};
+
 const isCustomContainer = (runtime) => runtime === 'custom-container';
 const DEFAULT_CA_PORT = 9000;
 
@@ -166,13 +174,18 @@ export default class PlanFunction extends PlanDeployBase {
     } else {
       delete functionPlan.local.environmentVariables;
     }
-    if (functionPlan.local.runtime === 'custom' && !_.isEmpty(functionPlan.local.customRuntimeConfig)) {
-      const { command, args } = functionPlan.local.customRuntimeConfig;
-      if (_.isArray(command)) {
-        functionPlan.local.customRuntimeConfig.command = command.map((value) => value?.toString());
+    if (functionPlan.local.runtime === 'custom') {
+      if (!_.isEmpty(functionPlan.local.customRuntimeConfig)) {
+        const { command, args } = functionPlan.local.customRuntimeConfig;
+        if (_.isArray(command)) {
+          functionPlan.local.customRuntimeConfig.command = command.map((value) => value?.toString());
+        }
+        if (_.isArray(args)) {
+          functionPlan.local.customRuntimeConfig.args = args.map((value) => value?.toString());
+        }
       }
-      if (_.isArray(args)) {
-        functionPlan.local.customRuntimeConfig.args = args.map((value) => value?.toString());
+      if (_.get(functionPlan, 'local.customHealthCheckConfig.httpGetUrl')) {
+        functionPlan.local.customHealthCheckConfig = _.defaults(functionPlan.local.customHealthCheckConfig, FUNCTION_CUSTOM_HEALTH_CHECK_CONFIG);
       }
     }
     if (!_.isEmpty(functionPlan.local.customDNS)) {
