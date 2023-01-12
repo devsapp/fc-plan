@@ -6,6 +6,5 @@ locales
 .ided
 .vscode
 
-package-lock.json
 example
 .DS_S*
