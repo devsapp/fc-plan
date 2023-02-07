@@ -11,7 +11,6 @@ export const FUNCTION_CONF_DEFAULT = {
   memorySize: 128,
   timeout: 3,
   instanceConcurrency: 1,
-  instanceSoftConcurrency: 1,
   instanceType: 'e1',
 };
 
