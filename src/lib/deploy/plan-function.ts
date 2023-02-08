@@ -225,6 +225,10 @@ export default class PlanFunction extends PlanDeployBase {
       functionPlan.local.asyncConfiguration = asyncConfiguration;
     }
 
+    if (_.isNumber(cloneRemote.instanceSoftConcurrency) && !_.isNumber(functionPlan.local?.instanceSoftConcurrency)) {
+      _.set(functionPlan, 'local.instanceSoftConcurrency', functionPlan.local?.instanceConcurrency || cloneRemote.instanceSoftConcurrency);
+    }
+
     return { cloneRemote, functionPlan };
   }
 
