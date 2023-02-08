@@ -166,7 +166,7 @@ export default class PlanFunction extends PlanDeployBase {
     this.rmCustomContainerConfigAccelerationInfo(remote);
 
     // 删除本地配置不支持的字段
-    const cloneRemote = this.clearInvalidField(remote, ['instanceSoftConcurrency', 'lastModifiedTime', 'createdTime', 'codeChecksum', 'codeSize', 'functionName', 'functionId']);
+    const cloneRemote = this.clearInvalidField(remote, ['lastModifiedTime', 'createdTime', 'codeChecksum', 'codeSize', 'functionName', 'functionId']);
 
     // deploy 对本地做的操作
     if (!_.isEmpty(functionPlan.local.environmentVariables)) {
@@ -223,6 +223,10 @@ export default class PlanFunction extends PlanDeployBase {
       }
       asyncConfiguration.destinationConfig = destinationConfig;
       functionPlan.local.asyncConfiguration = asyncConfiguration;
+    }
+
+    if (_.isNumber(cloneRemote.instanceSoftConcurrency) && !_.isNumber(functionPlan.local?.instanceSoftConcurrency)) {
+      _.set(functionPlan, 'local.instanceSoftConcurrency', functionPlan.local?.instanceConcurrency || cloneRemote.instanceSoftConcurrency);
     }
 
     return { cloneRemote, functionPlan };

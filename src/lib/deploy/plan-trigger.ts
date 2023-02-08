@@ -119,6 +119,10 @@ export default class PlanTrigger extends PlanDeployBase {
       local.role = remote.invocationRole;
     }
 
+    if (_.isEmpty(local.description) && _.isEmpty(cloneRemote.description)) {
+      _.unset(local, 'description');
+    }
+
     triggerPlan.local = local;
     return {
       triggerPlan,
