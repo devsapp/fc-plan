@@ -110,6 +110,9 @@ export default class PlanTrigger extends PlanDeployBase {
       if (_.isNil(_.get(local, 'config.methods'))) {
         _.set(local, 'config.methods', ['GET']);
       }
+      if (_.isNil(_.get(local, 'config.disableURLInternet'))) {
+        _.set(local, 'config.disableURLInternet', false);
+      }
     }
 
     if (triggerType === 'oss' && _.isObject(local.config?.filter)) {
