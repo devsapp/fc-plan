@@ -51,7 +51,7 @@ export default class PlanTrigger extends PlanDeployBase {
         continue;
       }
 
-      const { domainPlan, cloneRemote } = await this.transfromConfig(_.cloneDeep({ local: customDomain, remote }), this.credentials);
+      const { domainPlan, cloneRemote } = await this.transformConfig(_.cloneDeep({ local: customDomain, remote }), this.credentials);
       // 如果域名是 auto，临时修改为预期的域名
       if (nameIsAuto) {
         domainPlan.local.domainName = domainName;
@@ -78,7 +78,7 @@ export default class PlanTrigger extends PlanDeployBase {
   }
 
   // TODO: methods 需要处理
-  private async transfromConfig(domainPlan, credentials) {
+  private async transformConfig(domainPlan, credentials) {
     const cloneRemote = this.clearInvalidField(domainPlan.remote, ['accountId', 'apiVersion', 'createdTime', 'lastModifiedTime']);
     if (!cloneRemote.certConfig?.certName) {
       delete cloneRemote.certConfig;

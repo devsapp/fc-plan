@@ -40,7 +40,7 @@ export default class PlanTrigger extends PlanDeployBase {
         continue;
       }
 
-      const { triggerPlan, cloneRemote } = this.transfromConfig(_.cloneDeep({ local: triggerConfig, remote }));
+      const { triggerPlan, cloneRemote } = this.transformConfig(_.cloneDeep({ local: triggerConfig, remote }));
       const { changed, text } = diff(cloneRemote, triggerPlan.local);
 
       // 本地缓存和线上配置相等：deploy 时不交互
@@ -58,7 +58,7 @@ export default class PlanTrigger extends PlanDeployBase {
     return plan;
   }
 
-  private transfromConfig(triggerPlan) {
+  private transformConfig(triggerPlan) {
     const { local, remote } = triggerPlan;
     const { triggerType } = remote;
     if (local.qualifier) {
