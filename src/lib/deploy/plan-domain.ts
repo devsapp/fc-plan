@@ -27,7 +27,7 @@ export default class PlanTrigger extends PlanDeployBase {
       if (nameIsAuto) {
         if (_.isEmpty(state)) {
           const { genDomainName } = await core.loadComponent('devsapp/fc-core');
-          domainName = genDomainName(this.accountId, this.region, this.serviceName, this.functionName) ;
+          domainName = genDomainName(this.accountId, this.region, this.serviceName, this.functionName);
         } else {
           domainName = state.domainName;
         }
@@ -88,6 +88,10 @@ export default class PlanTrigger extends PlanDeployBase {
     }
     if (!_.isEmpty(cloneRemote.routeConfig?.routes)) {
       cloneRemote.routeConfig = cloneRemote.routeConfig.routes.map(item => _.omitBy(item, (char, key) => _.isNull(char) || key === 'methods'));
+    }
+
+    if (_.isNil(domainPlan.local.wafConfig) && !_.isNil(cloneRemote.wafConfig)) {
+      _.set(domainPlan, 'local.wafConfig.enableWAF', false);
     }
 
     // 读取配置文件
