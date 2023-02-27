@@ -2,7 +2,7 @@ Type: Component
 Name: fc-plan
 Provider:
   - 其它
-Version: 0.0.45
+Version: 0.0.46
 Description: 初始化component模板
 HomePage: https://www.serverless-devs.com
 Tags: #标签详情
