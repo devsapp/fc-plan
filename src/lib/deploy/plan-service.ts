@@ -38,7 +38,7 @@ export default class PlanService extends PlanDeployBase {
     if (state?.statefulConfig?.name) {
       delete state?.statefulConfig?.name;
     }
-    const { servicePlan, cloneRemote } = await this.transfromConfig(_.cloneDeep({
+    const { servicePlan, cloneRemote } = await this.transformConfig(_.cloneDeep({
       remote,
       local: _.defaults(this.service, SERVICE_CONF_DEFAULT),
     }));
@@ -92,7 +92,7 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
 
   // 转化线上配置：监测到线上配置为空则删除相关配置
   // 转化本地配置：监测到线上存在配置，本地是 auto，则复用线上配置
-  private async transfromConfig(servicePlan) {
+  private async transformConfig(servicePlan) {
     const { remote } = servicePlan;
     remote.name = this.serviceName;
     // 日志配置 

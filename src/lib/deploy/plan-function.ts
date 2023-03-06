@@ -54,7 +54,7 @@ export default class PlanFunction extends PlanDeployBase {
       };
     }
 
-    const { functionPlan, cloneRemote } = await this.transfromConfig(_.cloneDeep({
+    const { functionPlan, cloneRemote } = await this.transformConfig(_.cloneDeep({
       remote,
       local: _.defaults(this.functionConfig, FUNCTION_CONF_DEFAULT),
     }));
@@ -98,7 +98,7 @@ export default class PlanFunction extends PlanDeployBase {
     return functionPlan;
   }
 
-  private async transfromConfig(functionPlan) {
+  private async transformConfig(functionPlan) {
     const { remote } = functionPlan;
     // 转化线上配置：监测到线上配置为空则删除相关配置
     remote.name = this.functionName;
