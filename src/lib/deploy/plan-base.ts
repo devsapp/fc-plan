@@ -1,6 +1,6 @@
 import { lodash as _ } from '@serverless-devs/core';
 import Diff from '../diff';
-import { isAutoConfig } from '../utils';
+import { isAutoConfig, isAutoNasConfig } from '../utils';
 
 export default abstract class PlanDeployBase {
   region: string;
@@ -40,6 +40,7 @@ export default abstract class PlanDeployBase {
   abstract getPlan();
 
   isAutoConfig = isAutoConfig
+  isAutoNasConfig = isAutoNasConfig
 
   clearInvalidField(data, invalidKeys) {
     const d = _.omit(data, invalidKeys);

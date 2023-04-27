@@ -67,7 +67,7 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
     const { changed, text } = diff(cloneRemote, servicePlan.local);
 
     // 是否需要交互
-    const nasLocalConfigAuto = this.isAutoConfig(servicePlan.local.nasConfig);
+    const nasLocalConfigAuto = this.isAutoNasConfig(servicePlan.local.nasConfig);
     if (nasLocalConfigAuto && !_.isEmpty(cloneRemote.nasConfig)) { // nas配置是auto，但是线上存在配置认为是线上的节点不存在了，需要交互
       servicePlan.needInteract = true;
     } else if (_.isEqual(state?.statefulConfig || {}, remote)) { // 本地缓存和线上配置相等：deploy 时不交互
@@ -127,7 +127,7 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
     }
 
     // NAS 存储配置
-    const nasLocalConfigAuto = this.isAutoConfig(this.service.nasConfig);
+    const nasLocalConfigAuto = this.isAutoNasConfig(this.service.nasConfig);
     if (_.isEmpty(remote.nasConfig?.mountPoints)) {
       delete remote.nasConfig;
     } else {

@@ -7,6 +7,14 @@ export function isAutoConfig(config: any): boolean {
   return config === 'auto' || config === 'Auto';
 }
 
+export function isAutoNasConfig(config: any): boolean {
+  if (isAutoConfig(config)) {
+    return true;
+  }
+
+  return _.toLower(config) === 'autoperformance';
+}
+
 export const getTableHeader = (showKey) => {
   const header_option = {
     headerColor: 'white',
