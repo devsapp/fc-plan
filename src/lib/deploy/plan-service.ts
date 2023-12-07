@@ -94,6 +94,7 @@ https://gitee.com/devsapp/fc/blob/main/docs/zh/yaml.md#role`);
   // 转化本地配置：监测到线上存在配置，本地是 auto，则复用线上配置
   private async transformConfig(servicePlan) {
     const { remote } = servicePlan;
+    _.unset(remote, 'useSLRAuthentication');
     remote.name = this.serviceName;
     // 日志配置 
     const logLocalConfigAuto = this.isAutoConfig(this.service.logConfig);
